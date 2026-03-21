@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PIREEL — Studio Vidéo IA</title>
+  <style>
+    :root {
+      --bg:#000; --card:#0d0d0d; --card2:#141414; --gold:#ffcf00;
+      --gold-dim:rgba(255,207,0,.10); --gold-glow:rgba(255,207,0,.25);
+      --line:#1e1e1e; --t1:#fff; --t2:#888; --t3:#3a3a3a;
+      --green:#00e5a0; --green-dim:rgba(0,229,160,.08);
+      --blue:#4f8ef7; --blue-dim:rgba(79,142,247,.08);
+      --red:#ff4d6d; --input-bg:#111;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+    body { background:var(--bg); color:var(--t1); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; min-height:100vh; }
+    #app { max-width:480px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      height:60px; display:flex; align-items:center; gap:12px; padding:0 16px;
+      border-bottom:1px solid var(--line); position:sticky; top:0; z-index:100;
+      background:rgba(0,0,0,.92); backdrop-filter:blur(12px);
+    }
+    .back-btn {
+      width:36px; height:36px; border-radius:10px; background:var(--card2);
+      border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+      cursor:pointer; font-size:18px; flex-shrink:0; text-decoration:none; color:#fff;
+    }
+    .tb-title { flex:1; }
+    .tb-title h1 { font-size:15px; font-weight:800; letter-spacing:.3px; }
+    .tb-title p  { font-size:11px; color:var(--t2); margin-top:1px; }
+    .engine-badge {
+      background:var(--gold-dim); border:1px solid var(--gold-glow);
+      border-radius:20px; padding:4px 10px; font-size:10px; font-weight:800;
+      color:var(--gold); letter-spacing:.5px; white-space:nowrap; cursor:pointer;
+    }
+
+    /* ── SCROLL BODY ── */
+    .body { flex:1; overflow-y:auto; padding:16px 16px 120px; display:flex; flex-direction:column; gap:14px; }
+    .body::-webkit-scrollbar { display:none; }
+
+    /* ── CARDS ── */
+    .card {
+      background:var(--card); border:1px solid var(--line);
+      border-radius:18px; padding:18px; animation:fadeUp .3s ease both;
+    }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    .card-label {
+      font-size:10px; font-weight:800; letter-spacing:2px; text-transform:uppercase;
+      color:var(--t3); margin-bottom:12px; display:flex; align-items:center; gap:8px;
+    }
+    .card-label::after { content:''; flex:1; height:1px; background:var(--line); }
+
+    /* ── ENGINE SELECTOR ── */
+    .engine-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .engine-opt {
+      background:var(--card2); border:1.5px solid var(--line); border-radius:12px;
+      padding:12px 8px; display:flex; flex-direction:column; align-items:center; gap:6px;
+      cursor:pointer; transition:all .2s; position:relative;
+    }
+    .engine-opt.active { border-color:var(--gold); background:var(--gold-dim); }
+    .engine-opt:active { transform:scale(.96); }
+    .engine-logo { font-size:22px; }
+    .engine-name { font-size:10px; font-weight:800; color:var(--t2); }
+    .engine-opt.active .engine-name { color:var(--gold); }
+    .engine-free-tag {
+      position:absolute; top:-4px; right:-4px;
+      background:var(--green); color:#000; font-size:8px; font-weight:900;
+      padding:2px 5px; border-radius:6px; letter-spacing:.5px;
+    }
+    .engine-openai-row { grid-column:1/-1; }
+
+    /* ── API KEY INPUT ── */
+    .api-row { display:flex; gap:8px; align-items:center; }
+    .api-input {
+      flex:1; background:var(--input-bg); border:1.5px solid var(--line); border-radius:12px;
+      color:var(--t1); font-size:13px; padding:12px 14px; outline:none;
+      font-family:monospace; letter-spacing:.5px; transition:border-color .2s;
+    }
+    .api-input::placeholder { color:#333; font-family:inherit; letter-spacing:0; }
+    .api-input:focus { border-color:var(--gold); }
+    .api-save-btn {
+      background:var(--gold); color:#000; border:none; border-radius:12px;
+      padding:12px 14px; font-size:12px; font-weight:800; cursor:pointer; white-space:nowrap;
+    }
+    .api-status {
+      display:flex; align-items:center; gap:6px; margin-top:8px;
+      font-size:11px; color:var(--t2);
+    }
+    .api-dot { width:7px; height:7px; border-radius:50%; background:#333; flex-shrink:0; }
+    .api-dot.ok { background:var(--green); box-shadow:0 0 6px var(--green); }
+    .api-dot.warn { background:var(--gold); }
+    .api-toggle {
+      background:none; border:none; color:var(--t3); font-size:16px;
+      cursor:pointer; padding:4px; flex-shrink:0;
+    }
+
+    /* ── ADVANCED ── */
+    .adv-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px; }
+    .adv-item label { font-size:11px; color:var(--t2); display:block; margin-bottom:5px; }
+    .adv-sel {
+      width:100%; background:var(--input-bg); border:1.5px solid var(--line);
+      border-radius:10px; color:var(--t1); font-size:12px; padding:10px 12px;
+      outline:none; appearance:none; font-family:inherit;
+    }
+    .adv-sel:focus { border-color:var(--gold); }
+
+    /* ── PROMPT ZONE ── */
+    .prompt-wrap { position:relative; }
+    .prompt-ta {
+      width:100%; background:var(--input-bg); border:1.5px solid var(--line);
+      border-radius:14px; color:var(--t1); font-size:14px; padding:14px;
+      outline:none; resize:none; font-family:inherit; line-height:1.6;
+      transition:border-color .2s; min-height:110px;
+    }
+    .prompt-ta::placeholder { color:#2e2e2e; }
+    .prompt-ta:focus { border-color:rgba(255,207,0,.4); }
+    .prompt-footer {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-top:8px; padding:0 2px;
+    }
+    .char-cnt { font-size:11px; color:var(--t3); }
+    .char-cnt.warn { color:var(--red); }
+    .prompt-chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+    .chip {
+      background:var(--card2); border:1px solid var(--line); border-radius:20px;
+      padding:5px 10px; font-size:11px; color:var(--t2); cursor:pointer;
+      transition:all .2s; white-space:nowrap;
+    }
+    .chip:active { border-color:var(--gold); color:var(--gold); background:var(--gold-dim); }
+
+    /* ── GENERATE BUTTON ── */
+    .gen-btn {
+      width:100%; padding:16px; background:var(--gold); color:#000; border:none;
+      border-radius:16px; font-size:15px; font-weight:900; cursor:pointer;
+      letter-spacing:.3px; transition:all .2s; display:flex; align-items:center;
+      justify-content:center; gap:10px; position:relative; overflow:hidden;
+    }
+    .gen-btn:disabled { opacity:.35; pointer-events:none; }
+    .gen-btn:not(:disabled):active { transform:scale(.97); }
+    .gen-btn::before {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);
+      transform:translateX(-100%); transition:transform .5s;
+    }
+    .gen-btn:not(:disabled):hover::before { transform:translateX(100%); }
+
+    /* ── PROGRESS ── */
+    #progressSection { display:none; }
+    #progressSection.show { display:block; }
+    .prog-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .prog-title { font-size:13px; font-weight:700; }
+    .prog-engine-tag {
+      background:var(--blue-dim); border:1px solid rgba(79,142,247,.2);
+      border-radius:20px; padding:3px 10px; font-size:10px; color:var(--blue); font-weight:700;
+    }
+    .clip-tracks { display:flex; flex-direction:column; gap:8px; }
+    .clip-track {
+      background:var(--card2); border:1px solid var(--line); border-radius:12px;
+      padding:12px; display:flex; align-items:center; gap:12px;
+    }
+    .clip-track-num {
+      width:30px; height:30px; border-radius:50%; background:var(--card);
+      border:1.5px solid var(--line); display:grid; place-items:center;
+      font-size:11px; font-weight:800; color:var(--t2); flex-shrink:0;
+    }
+    .clip-track-num.done { border-color:var(--green); color:var(--green); }
+    .clip-track-num.active { border-color:var(--gold); color:var(--gold); animation:pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 var(--gold-glow)} 50%{box-shadow:0 0 0 8px rgba(255,207,0,0)} }
+    .clip-track-info { flex:1; min-width:0; }
+    .clip-track-label { font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .clip-track-sub { font-size:10px; color:var(--t2); margin-top:2px; }
+    .clip-track-status { font-size:18px; flex-shrink:0; }
+    .prog-bar-wrap { margin-top:14px; }
+    .prog-bar { height:4px; background:#1a1a1a; border-radius:4px; overflow:hidden; }
+    .prog-bar-fill {
+      height:100%; background:linear-gradient(90deg,var(--gold),var(--green));
+      border-radius:4px; width:0%; transition:width .6s cubic-bezier(.4,0,.2,1);
+    }
+    .prog-eta { font-size:11px; color:var(--t2); margin-top:6px; text-align:right; }
+
+    /* ── RESULT ── */
+    #resultSection { display:none; }
+    #resultSection.show { display:block; }
+    .result-hero {
+      background:linear-gradient(135deg,#050e08,#000d1a);
+      border:1px solid rgba(0,229,160,.2); border-radius:16px; padding:0;
+      overflow:hidden; margin-bottom:12px;
+    }
+    .result-video-area {
+      background:#000; min-height:180px; display:flex; align-items:center;
+      justify-content:center; position:relative;
+    }
+    .result-video-area video { width:100%; max-height:320px; object-fit:contain; }
+    .result-video-placeholder {
+      display:flex; flex-direction:column; align-items:center; gap:10px;
+      color:var(--t2); font-size:12px; padding:40px;
+    }
+    .result-video-placeholder .big-icon { font-size:48px; }
+    .result-meta { padding:14px; }
+    .result-meta-top {
+      display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;
+    }
+    .result-badge-ok {
+      display:flex; align-items:center; gap:6px; font-size:11px; font-weight:800;
+      text-transform:uppercase; letter-spacing:1px; color:var(--green);
+    }
+    .seed-tag {
+      background:rgba(79,142,247,.1); border:1px solid rgba(79,142,247,.2);
+      border-radius:20px; padding:3px 10px; font-size:10px; color:var(--blue); font-weight:600;
+    }
+    .clips-list { display:flex; flex-direction:column; gap:6px; }
+    .clip-item {
+      background:#0a0a0a; border-radius:10px; padding:10px 12px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .clip-num-badge {
+      width:26px; height:26px; border-radius:50%; background:var(--gold-dim);
+      border:1px solid rgba(255,207,0,.25); display:grid; place-items:center;
+      font-size:10px; font-weight:800; color:var(--gold); flex-shrink:0;
+    }
+    .clip-item-info { flex:1; min-width:0; }
+    .clip-item-label { font-size:11px; font-weight:600; }
+    .clip-item-sub { font-size:10px; color:var(--t2); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .clip-dl-btn {
+      background:#1a1a1a; border:1px solid var(--line); border-radius:8px;
+      color:var(--t2); font-size:11px; padding:5px 9px; cursor:pointer;
+      font-family:inherit; white-space:nowrap; transition:all .2s; text-decoration:none;
+      display:inline-flex; align-items:center; gap:4px;
+    }
+    .clip-dl-btn:active { border-color:var(--gold); color:var(--gold); }
+    .result-actions { display:flex; gap:8px; margin-top:14px; }
+    .btn-dl-main {
+      flex:1; background:var(--gold); color:#000; border:none; border-radius:12px;
+      padding:13px; font-size:13px; font-weight:800; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none;
+    }
+    .btn-new {
+      background:var(--card2); border:1px solid var(--line); border-radius:12px;
+      padding:13px 16px; font-size:13px; font-weight:700; cursor:pointer;
+      color:var(--t1); font-family:inherit;
+    }
+
+    /* ── DEMO NOTICE ── */
+    .demo-notice {
+      background:rgba(255,207,0,.05); border:1px solid rgba(255,207,0,.15);
+      border-radius:12px; padding:12px 14px; display:flex; gap:10px; align-items:flex-start;
+    }
+    .demo-notice-ico { font-size:16px; flex-shrink:0; margin-top:1px; }
+    .demo-notice-text { font-size:11px; color:var(--t2); line-height:1.6; }
+    .demo-notice-text b { color:var(--gold); }
+
+    /* ── HISTORY ── */
+    .history-item {
+      background:var(--card2); border:1px solid var(--line); border-radius:12px;
+      padding:12px; display:flex; gap:12px; align-items:center; cursor:pointer;
+      transition:border-color .2s;
+    }
+    .history-item:active { border-color:var(--gold); }
+    .history-thumb {
+      width:48px; height:48px; border-radius:10px; background:#1a1a1a;
+      border:1px solid var(--line); display:grid; place-items:center; font-size:22px; flex-shrink:0;
+    }
+    .history-info { flex:1; min-width:0; }
+    .history-title { font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .history-meta { font-size:10px; color:var(--t2); margin-top:2px; }
+
+    /* ── TOAST ── */
+    #toast {
+      position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+      background:#fff; color:#000; padding:10px 20px; border-radius:30px;
+      font-size:12px; font-weight:700; display:none; z-index:5000;
+      white-space:nowrap; max-width:calc(100vw - 32px); text-align:center;
+      box-shadow:0 4px 24px rgba(0,0,0,.4);
+    }
+    #toast.show { display:block; animation:toastIn .2s ease; }
+    @keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { display:none; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <a href="/" class="back-btn">←</a>
+    <div class="tb-title">
+      <h1>🎬 Studio Vidéo IA</h1>
+      <p>Génération professionnelle</p>
+    </div>
+    <div class="engine-badge" id="activeBadge" onclick="document.getElementById('engineCard').scrollIntoView({behavior:'smooth'})">
+      KLING
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!-- MOTEUR IA -->
+    <div class="card" id="engineCard">
+      <div class="card-label">Moteur IA</div>
+      <div class="engine-grid">
+        <div class="engine-opt active" onclick="selectEngine('kling',this)" data-engine="kling">
+          <div class="engine-logo">⚡</div>
+          <div class="engine-name">Kling</div>
+        </div>
+        <div class="engine-opt" onclick="selectEngine('luma',this)" data-engine="luma">
+          <div class="engine-logo">🌙</div>
+          <div class="engine-name">Luma</div>
+        </div>
+        <div class="engine-opt" onclick="selectEngine('runway',this)" data-engine="runway">
+          <div class="engine-logo">🛫</div>
+          <div class="engine-name">Runway</div>
+        </div>
+        <div class="engine-opt" onclick="selectEngine('pika',this)" data-engine="pika">
+          <div class="engine-logo">🔥</div>
+          <div class="engine-name">Pika</div>
+        </div>
+        <div class="engine-opt engine-openai-row" style="grid-column:span 2" onclick="selectEngine('openai',this)" data-engine="openai">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="engine-logo">🤖</div>
+            <div>
+              <div class="engine-name" style="font-size:11px;text-align:left;">OpenAI · Sora</div>
+              <div style="font-size:9px;color:#555;margin-top:2px;">Modèle avancé</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLÉ API UNIVERSELLE -->
+    <div class="card">
+      <div class="card-label">Clé API Universelle</div>
+      <div class="api-row">
+        <input type="password" class="api-input" id="apiKeyInput"
+               placeholder="sk-… ou votre clé API"
+               oninput="onApiInput()" autocomplete="off" spellcheck="false"/>
+        <button class="api-toggle" onclick="toggleApiVis()" id="apiToggleBtn" title="Afficher/Masquer">👁️</button>
+        <button class="api-save-btn" onclick="saveApiKey()">OK</button>
+      </div>
+      <div class="api-status">
+        <div class="api-dot" id="apiDot"></div>
+        <span id="apiStatusText">Aucune clé — mode démo actif</span>
+      </div>
+      <div class="demo-notice" style="margin-top:12px;" id="demoNotice">
+        <div class="demo-notice-ico">💡</div>
+        <div class="demo-notice-text">
+          Entrez votre clé API du moteur sélectionné. La clé est <b>stockée localement</b> dans votre navigateur et envoyée directement à l'API — jamais sauvegardée sur nos serveurs.
+        </div>
+      </div>
+    </div>
+
+    <!-- PARAMÈTRES AVANCÉS -->
+    <div class="card">
+      <div class="card-label">Paramètres</div>
+      <div class="adv-row">
+        <div class="adv-item">
+          <label>Nombre de clips</label>
+          <select class="adv-sel" id="clipsCount">
+            <option value="1">1 clip · 10s</option>
+            <option value="2">2 clips · 20s</option>
+            <option value="3" selected>3 clips · 30s</option>
+          </select>
+        </div>
+        <div class="adv-item">
+          <label>Durée / clip</label>
+          <select class="adv-sel" id="clipDuration">
+            <option value="5">5 secondes</option>
+            <option value="10" selected>10 secondes</option>
+          </select>
+        </div>
+      </div>
+      <div class="adv-row" style="margin-top:8px;">
+        <div class="adv-item" style="grid-column:1/-1">
+          <label>Style cinématique</label>
+          <select class="adv-sel" id="styleSelect">
+            <option value=", Cinematic 4K, realistic, slow zoom-in">Cinematic 4K — Zoom lent</option>
+            <option value=", Aerial drone shot, 4K, golden hour">Drone aérien — Golden Hour</option>
+            <option value=", Dark moody, neon lights, cinematic">Dark Moody — Néon</option>
+            <option value=", Slow motion, 4K, ultra realistic">Slow Motion Ultra HD</option>
+            <option value=", Anime style, vibrant colors, dynamic">Style Animé — Dynamique</option>
+            <option value="">Aucun (prompt brut)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROMPT -->
+    <div class="card">
+      <div class="card-label">Description de la vidéo</div>
+      <div class="prompt-wrap">
+        <textarea class="prompt-ta" id="promptInput" rows="4"
+          placeholder="Ex : Une femme marche au coucher de soleil sur une plage tropicale, vagues douces, lumière dorée…"
+          oninput="onPromptInput(this)"></textarea>
+      </div>
+      <div class="prompt-footer">
+        <span class="char-cnt" id="charCnt">0 / 500</span>
+        <span style="font-size:10px;color:var(--t3);">Décrivez chaque scène avec détails</span>
+      </div>
+      <div class="prompt-chips">
+        <div class="chip" onclick="addChip('Coucher de soleil sur la plage')">🌅 Plage</div>
+        <div class="chip" onclick="addChip('Ville nocturne avec néons')">🌃 Ville nuit</div>
+        <div class="chip" onclick="addChip('Forêt mystique avec brume')">🌲 Forêt</div>
+        <div class="chip" onclick="addChip('Espace, galaxie, étoiles filantes')">🌌 Espace</div>
+        <div class="chip" onclick="addChip('Voiture de sport sur autoroute')">🚗 Sport</div>
+        <div class="chip" onclick="addChip('Montagne enneigée, aurore boréale')">⛰️ Montagne</div>
+      </div>
+    </div>
+
+    <!-- BOUTON GÉNÉRER -->
+    <button class="gen-btn" id="genBtn" onclick="generate()" disabled>
+      <span id="genBtnIcon">🎬</span>
+      <span id="genBtnText">Entrez votre description</span>
+    </button>
+
+    <!-- PROGRESSION -->
+    <div class="card" id="progressSection">
+      <div class="prog-header">
+        <div class="prog-title">Génération en cours…</div>
+        <div class="prog-engine-tag" id="progEngineTag">KLING</div>
+      </div>
+      <div class="clip-tracks" id="clipTracks"></div>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar"><div class="prog-bar-fill" id="progFill"></div></div>
+        <div class="prog-eta" id="progEta">Initialisation…</div>
+      </div>
+    </div>
+
+    <!-- RÉSULTAT -->
+    <div class="card" id="resultSection">
+      <div class="card-label">Vidéo générée</div>
+      <div class="result-hero" id="resultHero">
+        <div class="result-video-area" id="resultVideoArea">
+          <div class="result-video-placeholder" id="resultPlaceholder">
+            <div class="big-icon">🎞️</div>
+            <div>Votre vidéo apparaîtra ici</div>
+          </div>
+        </div>
+        <div class="result-meta">
+          <div class="result-meta-top">
+            <div class="result-badge-ok" id="resultBadge">
+              <span>●</span><span>Prêt</span>
+            </div>
+            <div class="seed-tag" id="seedTag">SEED #——</div>
+          </div>
+          <div class="clips-list" id="clipsList"></div>
+          <div class="result-actions">
+            <a href="#" class="btn-dl-main" id="dlMainBtn" style="display:none">
+              ⬇ Télécharger la vidéo
+            </a>
+            <button class="btn-new" onclick="resetForm()">✦ Nouveau</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORIQUE -->
+    <div id="historySection" style="display:none;">
+      <div class="card-label" style="padding:0 2px;margin-bottom:10px;">Récents</div>
+      <div id="historyList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
+  </div><!-- /body -->
+</div>
+
+<div id="toast"></div>
+
+<script>
+  /* ── ÉTAT ── */
+  var STATE = {
+    engine: 'kling',
+    apiKey: '',
+    history: [],
+    generating: false,
+  };
+
+  var ENGINES = {
+    kling:  { name:'Kling',        icon:'⚡', color:'#ffcf00' },
+    luma:   { name:'Luma Dream',   icon:'🌙', color:'#a78bfa' },
+    runway: { name:'RunwayML',     icon:'🛫', color:'#4f8ef7' },
+    pika:   { name:'Pika',         icon:'🔥', color:'#ff7043' },
+    openai: { name:'OpenAI Sora',  icon:'🤖', color:'#10a37f' },
+  };
+
+  /* ── INIT ── */
+  (function init() {
+    var saved = localStorage.getItem('pireel_api_key');
+    var savedEngine = localStorage.getItem('pireel_engine');
+    var savedHistory = localStorage.getItem('pireel_history');
+
+    if (saved) {
+      STATE.apiKey = saved;
+      document.getElementById('apiKeyInput').value = saved;
+      updateApiStatus(true);
+    }
+    if (savedEngine && ENGINES[savedEngine]) {
+      selectEngineById(savedEngine);
+    }
+    if (savedHistory) {
+      try { STATE.history = JSON.parse(savedHistory); renderHistory(); } catch(e) {}
+    }
+  })();
+
+  /* ── MOTEUR ── */
+  function selectEngine(id, el) {
+    STATE.engine = id;
+    document.querySelectorAll('.engine-opt').forEach(function(e) { e.classList.remove('active'); });
+    el.classList.add('active');
+    document.getElementById('activeBadge').textContent = ENGINES[id].name.toUpperCase();
+    localStorage.setItem('pireel_engine', id);
+    toast_('Moteur : ' + ENGINES[id].name);
+    updateApiStatus(!!STATE.apiKey);
+  }
+
+  function selectEngineById(id) {
+    STATE.engine = id;
+    document.querySelectorAll('.engine-opt').forEach(function(el) {
+      el.classList.toggle('active', el.dataset.engine === id);
+    });
+    document.getElementById('activeBadge').textContent = ENGINES[id].name.toUpperCase();
+  }
+
+  /* ── CLÉ API ── */
+  function onApiInput() {
+    var val = document.getElementById('apiKeyInput').value.trim();
+    STATE.apiKey = val;
+    updateApiStatus(!!val);
+    updateGenBtn();
+  }
+
+  function saveApiKey() {
+    var val = document.getElementById('apiKeyInput').value.trim();
+    if (!val) {
+      STATE.apiKey = '';
+      localStorage.removeItem('pireel_api_key');
+      updateApiStatus(false);
+      toast_('🔓 Clé supprimée — mode démo');
+      return;
+    }
+    STATE.apiKey = val;
+    localStorage.setItem('pireel_api_key', val);
+    updateApiStatus(true);
+    toast_('✅ Clé API sauvegardée');
+    document.getElementById('demoNotice').style.display = 'none';
+    updateGenBtn();
+  }
+
+  function toggleApiVis() {
+    var inp = document.getElementById('apiKeyInput');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    document.getElementById('apiToggleBtn').textContent = inp.type === 'password' ? '👁️' : '🙈';
+  }
+
+  function updateApiStatus(hasKey) {
+    var dot = document.getElementById('apiDot');
+    var txt = document.getElementById('apiStatusText');
+    var eng = ENGINES[STATE.engine];
+    if (hasKey) {
+      dot.className = 'api-dot ok';
+      txt.textContent = 'Clé active — ' + eng.name + ' prêt';
+      document.getElementById('demoNotice').style.display = 'none';
+    } else {
+      dot.className = 'api-dot warn';
+      txt.textContent = 'Aucune clé — mode démo actif';
+      document.getElementById('demoNotice').style.display = 'flex';
+    }
+  }
+
+  /* ── PROMPT ── */
+  function onPromptInput(el) {
+    var len = el.value.length;
+    var cnt = document.getElementById('charCnt');
+    cnt.textContent = len + ' / 500';
+    cnt.className = 'char-cnt' + (len > 500 ? ' warn' : '');
+    updateGenBtn();
+  }
+
+  function addChip(text) {
+    var ta = document.getElementById('promptInput');
+    var cur = ta.value.trim();
+    ta.value = cur ? cur + '. ' + text : text;
+    onPromptInput(ta);
+    ta.focus();
+  }
+
+  function updateGenBtn() {
+    var prompt = (document.getElementById('promptInput').value || '').trim();
+    var btn = document.getElementById('genBtn');
+    var icon = document.getElementById('genBtnIcon');
+    var label = document.getElementById('genBtnText');
+    var ok = prompt.length > 0 && prompt.length <= 500;
+    btn.disabled = !ok || STATE.generating;
+    if (!prompt) {
+      icon.textContent = '🎬'; label.textContent = 'Entrez votre description';
+    } else if (prompt.length > 500) {
+      icon.textContent = '⛔'; label.textContent = 'Texte trop long (max 500)';
+    } else if (!STATE.apiKey) {
+      icon.textContent = '🎬'; label.textContent = 'Générer (mode démo)';
+    } else {
+      icon.textContent = ENGINES[STATE.engine].icon;
+      label.textContent = 'Générer avec ' + ENGINES[STATE.engine].name;
+    }
+  }
+
+  /* ── GÉNÉRATION ── */
+  async function generate() {
+    if (STATE.generating) return;
+    var prompt = document.getElementById('promptInput').value.trim();
+    if (!prompt || prompt.length > 500) return;
+
+    STATE.generating = true;
+    var btn = document.getElementById('genBtn');
+    btn.disabled = true;
+    document.getElementById('genBtnIcon').textContent = '⏳';
+    document.getElementById('genBtnText').textContent = 'Génération en cours…';
+
+    /* Paramètres */
+    var clipsCount = parseInt(document.getElementById('clipsCount').value) || 3;
+    var duration   = parseInt(document.getElementById('clipDuration').value) || 10;
+    var style      = document.getElementById('styleSelect').value;
+    var seed       = Math.floor(Math.random() * 999999) + 100000;
+    var engine     = STATE.engine;
+
+    /* Découper le prompt en segments */
+    var words = prompt.split(' ');
+    var segSize = Math.ceil(words.length / clipsCount);
+    var segments = [];
+    for (var i = 0; i < clipsCount; i++) {
+      var seg = words.slice(i * segSize, (i + 1) * segSize).join(' ') || words.slice(0, segSize).join(' ');
+      segments.push(seg);
+    }
+
+    /* Afficher progression */
+    showProgress(segments, engine, seed);
+
+    try {
+      var res = await fetch('/api/studio-generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          seed, segments,
+          prompt_suffix: style,
+          api_key: STATE.apiKey || '',
+          engine, duration,
+        }),
+      });
+      var data = await res.json();
+      finishProgress(100);
+      showResult(data, seed, segments, engine);
+      saveToHistory(prompt, data, engine, seed);
+    } catch(e) {
+      finishProgress(100);
+      showResult({ success:true, test_mode:true, clips:segments.map(function(s,i){ return {index:i+1,prompt:s,status:'demo',url:null}; }), video_url:null }, seed, segments, engine);
+    }
+
+    STATE.generating = false;
+    updateGenBtn();
+  }
+
+  /* ── PROGRESSION ── */
+  function showProgress(segments, engine, seed) {
+    var sec = document.getElementById('progressSection');
+    sec.classList.add('show');
+    document.getElementById('resultSection').classList.remove('show');
+    document.getElementById('progEngineTag').textContent = ENGINES[engine].name.toUpperCase();
+
+    var tracks = document.getElementById('clipTracks');
+    tracks.innerHTML = segments.map(function(s, i) {
+      return '<div class="clip-track" id="track' + i + '">'
+        + '<div class="clip-track-num' + (i === 0 ? ' active' : '') + '" id="tnum' + i + '">' + (i+1) + '</div>'
+        + '<div class="clip-track-info">'
+        + '<div class="clip-track-label">Clip ' + (i+1) + ' — ' + s.substring(0,45) + (s.length>45?'…':'') + '</div>'
+        + '<div class="clip-track-sub" id="tsub' + i + '">En attente…</div>'
+        + '</div>'
+        + '<div class="clip-track-status" id="ticon' + i + '">' + (i === 0 ? '⏳' : '○') + '</div>'
+        + '</div>';
+    }).join('');
+
+    document.getElementById('progFill').style.width = '5%';
+    document.getElementById('progEta').textContent = 'Connexion à ' + ENGINES[engine].name + '…';
+
+    /* Simulation de progression */
+    var step = 0;
+    var totalSteps = segments.length * 4;
+    var interval = setInterval(function() {
+      step++;
+      var pct = Math.min(90, Math.round((step / totalSteps) * 90));
+      document.getElementById('progFill').style.width = pct + '%';
+
+      var clipIdx = Math.min(segments.length - 1, Math.floor(step / 4));
+      var subStep = step % 4;
+
+      for (var i = 0; i < segments.length; i++) {
+        var num = document.getElementById('tnum' + i);
+        var sub = document.getElementById('tsub' + i);
+        var ico = document.getElementById('ticon' + i);
+        if (!num) continue;
+        if (i < clipIdx) {
+          num.className = 'clip-track-num done'; ico.textContent = '✅'; sub.textContent = 'Clip rendu';
+        } else if (i === clipIdx) {
+          num.className = 'clip-track-num active'; ico.textContent = '⏳';
+          var msgs = ['Envoi du prompt…', 'Rendu IA en cours…', 'Optimisation…', 'Finalisation…'];
+          sub.textContent = msgs[subStep] || 'Traitement…';
+        } else {
+          num.className = 'clip-track-num'; ico.textContent = '○'; sub.textContent = 'En attente…';
+        }
+      }
+
+      var etaMsgs = ['Initialisation moteur…','Envoi du prompt…','IA en cours de rendu…','Optimisation qualité…','Assemblage des clips…'];
+      document.getElementById('progEta').textContent = etaMsgs[Math.min(step % etaMsgs.length, etaMsgs.length-1)];
+
+      if (step >= totalSteps) clearInterval(interval);
+    }, 3000);
+
+    window._progressInterval = interval;
+  }
+
+  function finishProgress(pct) {
+    clearInterval(window._progressInterval);
+    document.getElementById('progFill').style.width = pct + '%';
+    document.getElementById('progEta').textContent = '✅ Génération terminée !';
+    var nums = document.querySelectorAll('.clip-track-num');
+    var icons = document.querySelectorAll('.clip-track-status');
+    var subs = document.querySelectorAll('.clip-track-sub');
+    nums.forEach(function(n) { n.className = 'clip-track-num done'; });
+    icons.forEach(function(i) { i.textContent = '✅'; });
+    subs.forEach(function(s) { s.textContent = 'Clip rendu'; });
+  }
+
+  /* ── RÉSULTAT ── */
+  function showResult(data, seed, segments, engine) {
+    var sec = document.getElementById('resultSection');
+    sec.classList.add('show');
+
+    var isTest = data.test_mode || !data.video_url;
+    var eng = ENGINES[engine];
+
+    document.getElementById('seedTag').textContent = 'SEED #' + seed;
+    document.getElementById('resultBadge').innerHTML =
+      '<span style="color:' + (isTest ? 'var(--gold)' : 'var(--green)') + '">●</span>'
+      + '<span>' + (isTest ? 'Mode démo' : 'Généré — ' + eng.name) + '</span>';
+
+    /* Zone vidéo */
+    var vArea = document.getElementById('resultVideoArea');
+    if (data.video_url) {
+      vArea.innerHTML = '<video controls autoplay muted loop playsinline src="' + data.video_url + '" style="width:100%;max-height:320px;"></video>';
+    } else {
+      vArea.innerHTML = '<div class="result-video-placeholder">'
+        + '<div class="big-icon">🎞️</div>'
+        + '<div style="font-weight:700;">' + (isTest ? 'Mode démo' : 'Clips générés') + '</div>'
+        + '<div style="color:var(--t2);font-size:11px;margin-top:4px;">'
+        + (isTest ? 'Ajoutez votre clé API pour générer de vraies vidéos' : '') + '</div>'
+        + '</div>';
+    }
+
+    /* Liste des clips */
+    var clips = data.clips || segments.map(function(s, i) { return { index:i+1, prompt:s, url:null, status:'demo' }; });
+    document.getElementById('clipsList').innerHTML = clips.map(function(c) {
+      return '<div class="clip-item">'
+        + '<div class="clip-num-badge">' + c.index + '</div>'
+        + '<div class="clip-item-info">'
+        + '<div class="clip-item-label">Clip ' + c.index + ' · ' + (document.getElementById('clipDuration').value || 10) + 's</div>'
+        + '<div class="clip-item-sub">' + (c.prompt || segments[c.index-1] || '').substring(0,50) + '</div>'
+        + '</div>'
+        + (c.url ? '<a href="' + c.url + '" download class="clip-dl-btn">⬇ DL</a>' : '<span style="font-size:11px;color:var(--t3);">' + (isTest ? 'Démo' : '✅') + '</span>')
+        + '</div>';
+    }).join('');
+
+    /* Bouton download */
+    var dlBtn = document.getElementById('dlMainBtn');
+    if (data.video_url) {
+      dlBtn.style.display = 'flex';
+      dlBtn.href = data.video_url;
+      dlBtn.download = 'pireel_video_' + seed + '.mp4';
+    } else {
+      dlBtn.style.display = 'none';
+    }
+
+    sec.scrollIntoView({ behavior:'smooth', block:'start' });
+    toast_(isTest ? '🎬 Mode démo — ajoutez une clé API !' : '✅ Vidéo générée avec ' + eng.name);
+  }
+
+  /* ── RESET ── */
+  function resetForm() {
+    document.getElementById('promptInput').value = '';
+    document.getElementById('charCnt').textContent = '0 / 500';
+    document.getElementById('progressSection').classList.remove('show');
+    document.getElementById('resultSection').classList.remove('show');
+    document.getElementById('genBtnIcon').textContent = '🎬';
+    document.getElementById('genBtnText').textContent = 'Entrez votre description';
+    document.getElementById('genBtn').disabled = true;
+    STATE.generating = false;
+    document.getElementById('promptInput').focus();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ── HISTORIQUE ── */
+  function saveToHistory(prompt, data, engine, seed) {
+    var item = { prompt, engine, seed, date: new Date().toISOString(), isTest: data.test_mode, videoUrl: data.video_url };
+    STATE.history.unshift(item);
+    STATE.history = STATE.history.slice(0, 10);
+    localStorage.setItem('pireel_history', JSON.stringify(STATE.history));
+    renderHistory();
+  }
+
+  function renderHistory() {
+    if (STATE.history.length === 0) return;
+    var sec = document.getElementById('historySection');
+    var list = document.getElementById('historyList');
+    sec.style.display = 'block';
+    list.innerHTML = STATE.history.slice(0, 5).map(function(item) {
+      var eng = ENGINES[item.engine] || ENGINES.kling;
+      var date = new Date(item.date);
+      var dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+      return '<div class="history-item">'
+        + '<div class="history-thumb">' + eng.icon + '</div>'
+        + '<div class="history-info">'
+        + '<div class="history-title">' + item.prompt.substring(0,50) + (item.prompt.length>50?'…':'') + '</div>'
+        + '<div class="history-meta">' + eng.name + ' · ' + dateStr + (item.isTest ? ' · Démo' : '') + '</div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  /* ── TOAST ── */
+  function toast_(m) {
+    var t = document.getElementById('toast');
+    t.textContent = m; t.classList.add('show');
+    clearTimeout(t._to);
+    t._to = setTimeout(function() { t.classList.remove('show'); }, 2500);
+  }
+</script>
+</body>
+</html>
