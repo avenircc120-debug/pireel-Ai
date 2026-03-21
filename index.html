@@ -227,6 +227,42 @@
     .stu-demo { background:rgba(255,207,0,.05); border:1px solid rgba(255,207,0,.12); border-radius:11px; padding:11px 13px; display:flex; gap:9px; align-items:flex-start; margin-top:10px; }
     .stu-demo-txt { font-size:11px; color:var(--t2); line-height:1.6; }
     .stu-demo-txt b { color:var(--gold); }
+
+    /* CHAT V1 — PLUS MENU */
+    #plusMenu { display:none; flex-direction:column; position:absolute; bottom:calc(74px + env(safe-area-inset-bottom,16px)); left:12px; background:#181818; border:1px solid var(--line); border-radius:18px; padding:8px; z-index:200; min-width:210px; box-shadow:0 10px 40px rgba(0,0,0,.7); }
+    #plusMenu.open { display:flex; animation:sheetUp .22s ease; }
+    #plusMenu button:hover { background:rgba(255,207,0,.07) !important; }
+    /* CHAT BAR V1 */
+    #chatBar { position:absolute; bottom:calc(68px + env(safe-area-inset-bottom,16px)); left:0; right:0; max-width:480px; margin:0 auto; padding:8px 12px 10px; background:var(--bg); border-top:1px solid var(--line); z-index:100; }
+    #chatInput { width:100%; background:var(--input-bg); border:1.5px solid var(--line); border-radius:20px; color:var(--t1); font-size:13px; padding:9px 40px 9px 14px; resize:none; font-family:inherit; line-height:1.45; max-height:100px; overflow-y:auto; outline:none; transition:border-color .2s; display:block; }
+    #chatInput:focus { border-color:rgba(255,207,0,.4); }
+    #chatInput.over { border-color:var(--red) !important; box-shadow:0 0 0 3px rgba(255,77,109,.15); }
+    #sendBtn { width:38px; height:38px; border-radius:50%; background:var(--gold); border:none; color:#000; font-size:16px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:opacity .2s,transform .1s; }
+    #sendBtn:disabled { opacity:.3; cursor:default; }
+    #sendBtn:not(:disabled):active { transform:scale(.92); }
+    #plusBtn { width:38px; height:38px; border-radius:50%; background:#1a1a1a; border:1px solid var(--line); color:var(--t1); font-size:24px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:200; line-height:1; transition:background .2s; }
+    #plusBtn.open-state { background:rgba(255,207,0,.1); border-color:rgba(255,207,0,.3); }
+    /* BANNER V1 */
+    .v1-banner { background:linear-gradient(90deg,#111,#000); margin:10px 12px 4px; padding:12px 14px; border-radius:14px; border:1px solid var(--line); display:flex; align-items:center; gap:12px; flex-shrink:0; position:relative; cursor:pointer; overflow:hidden; }
+    .v1-banner-pub { position:absolute; top:5px; right:10px; font-size:8px; color:var(--t3); letter-spacing:1px; text-transform:uppercase; }
+    /* TYPING DOTS */
+    .typing-bbl { background:var(--card); border-radius:18px 18px 18px 4px; padding:10px 14px; display:inline-flex; gap:5px; align-items:center; border:1px solid var(--line); }
+    .td { width:7px; height:7px; border-radius:50%; background:var(--t2); animation:tdAnim 1.4s infinite; }
+    .td:nth-child(2) { animation-delay:.2s; }
+    .td:nth-child(3) { animation-delay:.4s; }
+    @keyframes tdAnim { 0%,80%,100%{transform:scale(0.6);opacity:.4} 40%{transform:scale(1);opacity:1} }
+    /* MESSAGES */
+    .msg { display:flex; gap:8px; align-items:flex-end; }
+    .msg-user { flex-direction:row-reverse; }
+    .bbl { padding:10px 13px; border-radius:18px; font-size:13px; line-height:1.5; max-width:75vw; word-break:break-word; }
+    .bbl-user { background:var(--gold); color:#000; border-radius:18px 18px 4px 18px; font-weight:600; }
+    .bbl-ai { background:var(--card); color:var(--t1); border-radius:18px 18px 18px 4px; border:1px solid var(--line); }
+    .bbl-result { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; width:100%; }
+    .bbl-result-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .copy-micro { background:none; border:1px solid var(--line); border-radius:8px; color:var(--t2); font-size:10px; padding:3px 8px; cursor:pointer; font-family:inherit; }
+    .msg-t { font-size:10px; color:var(--t3); margin-top:4px; }
+    /* PHOTO PREVIEW IN BAR */
+    #photoPreviewWrap { margin-bottom:7px; display:none; position:relative; width:fit-content; }
   </style>
 
   <script>
@@ -871,6 +907,7 @@
       if (savedEng && STU_ENGINES[savedEng]) { STU.engine = savedEng; }
       /* Appliqué après DOMContentLoaded */
       document.addEventListener('DOMContentLoaded', function() {
+        startV1AdRotation();
         if (saved) {
           var inp = document.getElementById('stuApiInp');
           if (inp) inp.value = saved;
@@ -1174,6 +1211,40 @@
         });
       }
     });
+
+    /* ── V1 CHAT HELPERS ── */
+    function quickPrompt(text) {
+      var inp = document.getElementById('chatInput');
+      if (!inp) return;
+      inp.value = text;
+      onChatInput(inp);
+      updateSendBtn();
+      inp.focus();
+    }
+
+    function updateSendBtn() {
+      var inp = document.getElementById('chatInput');
+      var btn = document.getElementById('sendBtn');
+      if (inp && btn) {
+        btn.disabled = inp.value.trim().length === 0 || inp.value.length > 500;
+      }
+    }
+
+    /* ── ROTATION PUB V1 ── */
+    function startV1AdRotation() {
+      var v1Ads = ADS;
+      var idx = 0;
+      setInterval(function() {
+        idx = (idx + 1) % v1Ads.length;
+        var a = v1Ads[idx];
+        var e  = document.getElementById('v1AdEmoji');
+        var tt = document.getElementById('v1AdTitle');
+        var ss = document.getElementById('v1AdSub');
+        if (e)  e.textContent  = a.e;
+        if (tt) tt.textContent = a.t;
+        if (ss) ss.textContent = a.s;
+      }, 4500);
+    }
   </script>
 </head>
 <body>
@@ -1209,157 +1280,117 @@
   </div>
 
 
-  <!-- ══ VIDÉO IA — STUDIO PROFESSIONNEL ══ -->
-  <div id="v1" class="view" style="flex-direction:column;overflow:hidden;">
+  <!-- ══ VIDÉO IA — CHAT INTERFACE ══ -->
+  <div id="v1" class="view" style="flex-direction:column;overflow:hidden;position:relative;">
 
-    <!-- Topbar studio -->
+    <!-- TOPBAR -->
     <div class="topbar">
-      <div class="tb-logo">🎬</div>
-      <div style="flex:1;padding-left:10px;">
-        <div style="font-size:14px;font-weight:800;">Studio Vidéo IA</div>
-        <div style="font-size:10px;color:var(--t2);">Génération professionnelle</div>
+      <div class="tb-logo" style="font-size:17px;background:transparent;border:none;">🎬</div>
+      <div style="flex:1;padding-left:8px;">
+        <div style="font-size:14px;font-weight:800;">Vidéo IA</div>
+        <div style="font-size:10px;color:var(--t2);">30s · 3 clips · 4K</div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div class="w-chip" onclick="openWallet()">⚡ <span id="chatPts">0</span> pts</div>
-        <div style="background:var(--gold-dim);border:1px solid rgba(255,207,0,.25);border-radius:20px;padding:4px 10px;font-size:10px;font-weight:800;color:var(--gold);" id="stuBadge">KLING</div>
+      <div class="w-chip" onclick="openWallet()">⚡ <span id="chatPts">0</span> pts</div>
+    </div>
+
+    <!-- BANNIÈRE PUB -->
+    <div class="v1-banner" onclick="toast_('📣 Publicité partenaire')">
+      <div style="font-size:26px;" id="v1AdEmoji">🎬</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="v1AdTitle">Vidéo Partenaire</div>
+        <div style="font-size:10px;color:var(--t2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="v1AdSub">Votre publicité ici — contactez-nous</div>
+      </div>
+      <div class="v1-banner-pub">PUB</div>
+    </div>
+
+    <!-- ZONE MESSAGES -->
+    <div class="chat-msgs" id="msgs" style="padding-bottom:calc(80px + env(safe-area-inset-bottom,16px));">
+      <div id="chatEmpty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--t2);padding:40px 24px;text-align:center;min-height:200px;">
+        <div style="font-size:52px;">🎬</div>
+        <div style="font-size:16px;font-weight:800;color:var(--t1);">Créez votre vidéo IA</div>
+        <div style="font-size:12px;line-height:1.7;max-width:240px;">Décrivez ce que vous voulez voir.<br><span style="color:var(--gold);">3 clips × 10s</span> fusionnés en <span style="color:var(--gold);">30s · 4K</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
+          <span onclick="quickPrompt('Coucher de soleil sur une plage tropicale, vagues douces, lumière dorée')" style="background:var(--card);border:1px solid var(--line);border-radius:20px;padding:6px 12px;font-size:11px;cursor:pointer;">🌅 Plage</span>
+          <span onclick="quickPrompt('Ville nocturne sous la pluie, néons colorés, reflets sur le sol')" style="background:var(--card);border:1px solid var(--line);border-radius:20px;padding:6px 12px;font-size:11px;cursor:pointer;">🌃 Ville</span>
+          <span onclick="quickPrompt('Forêt mystique avec brume matinale, rayons de lumière entre les arbres')" style="background:var(--card);border:1px solid var(--line);border-radius:20px;padding:6px 12px;font-size:11px;cursor:pointer;">🌲 Forêt</span>
+          <span onclick="quickPrompt('Galaxie et étoiles filantes, voyage dans l'espace infini')" style="background:var(--card);border:1px solid var(--line);border-radius:20px;padding:6px 12px;font-size:11px;cursor:pointer;">🌌 Espace</span>
+        </div>
       </div>
     </div>
 
-    <!-- Corps scrollable -->
-    <div class="stu-body" id="stuBody">
-
-      <!-- MOTEUR IA -->
-      <div class="stu-card">
-        <div class="stu-label">Moteur IA</div>
-        <div class="stu-engine-grid">
-          <div class="stu-eng on" onclick="stuSelectEngine('kling',this)" data-engine="kling">
-            <div class="stu-eng-ico">⚡</div><div class="stu-eng-name">Kling</div>
-          </div>
-          <div class="stu-eng" onclick="stuSelectEngine('luma',this)" data-engine="luma">
-            <div class="stu-eng-ico">🌙</div><div class="stu-eng-name">Luma</div>
-          </div>
-          <div class="stu-eng" onclick="stuSelectEngine('runway',this)" data-engine="runway">
-            <div class="stu-eng-ico">🛫</div><div class="stu-eng-name">Runway</div>
-          </div>
-          <div class="stu-eng" onclick="stuSelectEngine('pika',this)" data-engine="pika" style="display:none;">
-            <div class="stu-eng-ico">🔥</div><div class="stu-eng-name">Pika</div>
-          </div>
-          <div class="stu-eng stu-eng-wide" onclick="stuSelectEngine('openai',this)" data-engine="openai" style="display:none;">
-            <div class="stu-eng-ico">🤖</div>
-            <div><div class="stu-eng-name" style="font-size:11px;">OpenAI · Sora</div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- CLÉ API -->
-      <div class="stu-card" style="display:none;">
-        <div class="stu-label">Clé API Universelle</div>
-        <div class="stu-api-row">
-          <input type="password" class="stu-api-inp" id="stuApiInp"
-                 placeholder="sk-… ou votre clé API"
-                 oninput="stuOnApiInput()" autocomplete="off" spellcheck="false"/>
-          <button class="stu-api-eye" onclick="stuToggleVis()" id="stuEyeBtn">👁️</button>
-          <button class="stu-api-save" onclick="stuSaveKey()">OK</button>
-        </div>
-        <div class="stu-api-status">
-          <div class="stu-dot" id="stuDot"></div>
-          <span id="stuDotTxt">Aucune clé — mode démo actif</span>
-        </div>
-        <div class="stu-demo" id="stuDemoNotice">
-          <span style="font-size:15px;flex-shrink:0;">💡</span>
-          <div class="stu-demo-txt">Clé stockée <b>localement</b> dans votre navigateur. Jamais sauvegardée sur nos serveurs.</div>
-        </div>
-      </div>
-
-      <!-- PARAMÈTRES -->
-      <div class="stu-card" style="display:none;">
-        <div class="stu-label">Paramètres</div>
-        <div class="stu-params">
-          <div><label class="stu-param-label">Clips</label>
-            <select class="stu-sel" id="stuClips">
-              <option value="1">1 clip · 10s</option>
-              <option value="2">2 clips · 20s</option>
-              <option value="3" selected>3 clips · 30s</option>
-            </select>
-          </div>
-          <div><label class="stu-param-label">Durée / clip</label>
-            <select class="stu-sel" id="stuDur">
-              <option value="5">5 secondes</option>
-              <option value="10" selected>10 secondes</option>
-            </select>
-          </div>
-          <div class="stu-sel-full"><label class="stu-param-label">Style cinématique</label>
-            <select class="stu-sel" id="stuStyle">
-              <option value=", Cinematic 4K, realistic, slow zoom-in">Cinematic 4K — Zoom lent</option>
-              <option value=", Aerial drone shot, 4K, golden hour">Drone aérien — Golden Hour</option>
-              <option value=", Dark moody, neon lights, cinematic">Dark Moody — Néon</option>
-              <option value=", Slow motion, 4K, ultra realistic">Slow Motion Ultra HD</option>
-              <option value=", Anime style, vibrant colors, dynamic">Style Animé</option>
-              <option value="">Aucun (prompt brut)</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- PROMPT -->
-      <div class="stu-card" style="display:none;">
-        <div class="stu-label">Description de la vidéo</div>
-        <textarea class="stu-ta" id="stuPrompt" rows="4"
-          placeholder="Ex : Une femme marche au coucher de soleil sur une plage tropicale, vagues douces, lumière dorée…"
-          oninput="stuOnPrompt(this)"></textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px;padding:0 2px;">
-          <span style="font-size:10px;color:var(--t3);">Max 500 caractères</span>
-          <span id="stuCharCnt" style="font-size:11px;color:var(--t3);">0 / 500</span>
-        </div>
-        <div class="stu-chips">
-          <div class="stu-chip" onclick="stuAddChip('Coucher de soleil sur la plage')">🌅 Plage</div>
-          <div class="stu-chip" onclick="stuAddChip('Ville nocturne néons')">🌃 Nuit</div>
-          <div class="stu-chip" onclick="stuAddChip('Forêt mystique avec brume')">🌲 Forêt</div>
-          <div class="stu-chip" onclick="stuAddChip('Galaxie, étoiles filantes, espace')">🌌 Espace</div>
-          <div class="stu-chip" onclick="stuAddChip('Voiture sport sur autoroute')">🚗 Sport</div>
-        </div>
-      </div>
-
-      <!-- BOUTON GÉNÉRER -->
-      <button class="stu-gen-btn" id="stuGenBtn" onclick="stuGenerate()" disabled>
-        <span id="stuBtnIco">🎬</span>
-        <span id="stuBtnTxt">Entrez votre description</span>
+    <!-- MENU PLUS -->
+    <div id="plusMenu">
+      <button onclick="openSubs();closePlus();" style="background:none;border:none;color:var(--t1);padding:11px 16px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:12px;width:100%;text-align:left;">
+        <span style="font-size:19px;">⭐</span> Abonnement
+        <span style="margin-left:auto;font-size:10px;color:var(--gold);font-weight:700;">1 500 F / sem</span>
       </button>
+      <div style="height:1px;background:var(--line);margin:2px 8px;"></div>
+      <button onclick="choosePhoto();" style="background:none;border:none;color:var(--t1);padding:11px 16px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:12px;width:100%;text-align:left;">
+        <span style="font-size:19px;">🖼️</span> Choisir une photo
+      </button>
+      <div style="height:1px;background:var(--line);margin:2px 8px;"></div>
+      <button onclick="shareCode();closePlus();" style="background:none;border:none;color:var(--t1);padding:11px 16px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:12px;width:100%;text-align:left;">
+        <span style="font-size:19px;">🤝</span> Parrainer
+      </button>
+    </div>
 
-      <!-- PROGRESSION -->
-      <div class="stu-card stu-prog" id="stuProg">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <div style="font-size:13px;font-weight:700;">Génération en cours…</div>
-          <div style="background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.2);border-radius:20px;padding:3px 10px;font-size:10px;color:#4f8ef7;font-weight:700;" id="stuProgEngine">KLING</div>
+    <!-- BARRE INPUT -->
+    <div id="chatBar">
+      <!-- Aperçu photo -->
+      <div id="photoPreviewWrap">
+        <img id="photoPreview" style="width:58px;height:58px;object-fit:cover;border-radius:10px;border:1px solid var(--line);">
+        <button onclick="removePhoto()" style="position:absolute;top:-7px;right:-7px;background:#333;border:none;color:#fff;width:20px;height:20px;border-radius:50%;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+      <!-- Input row -->
+      <div style="display:flex;align-items:flex-end;gap:8px;">
+        <button id="plusBtn" onclick="togglePlus()"><span>+</span></button>
+        <input type="file" id="fileIn" accept="image/*" onchange="onPhotoChosen(this)" style="display:none;">
+        <div style="flex:1;position:relative;">
+          <textarea id="chatInput" rows="1"
+            placeholder="Décrivez votre vidéo…"
+            oninput="onChatInput(this);updateSendBtn();"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"></textarea>
+          <span id="charCount" style="position:absolute;bottom:7px;right:11px;font-size:9px;color:var(--t3);pointer-events:none;">0/500</span>
         </div>
+        <button id="sendBtn" onclick="sendMsg()" disabled>▶</button>
+      </div>
+    </div>
+
+    <!-- ÉLÉMENTS CACHÉS (arrière-plan) -->
+    <div style="display:none;" aria-hidden="true">
+      <div id="stuBadge"></div>
+      <div id="stuBody">
+        <select id="stuClips"><option value="3" selected>3</option></select>
+        <select id="stuDur"><option value="10" selected>10</option></select>
+        <select id="stuStyle"><option value=", Cinematic 4K, realistic, slow zoom-in" selected>4K</option></select>
+        <textarea id="stuPrompt"></textarea>
+        <span id="stuCharCnt"></span>
+        <input type="password" id="stuApiInp">
+        <div id="stuDot"></div><span id="stuDotTxt"></span>
+        <div id="stuDemoNotice"></div>
         <div id="stuTracks"></div>
-        <div class="stu-pbar"><div class="stu-pbar-fill" id="stuFill"></div></div>
-        <div style="font-size:11px;color:var(--t2);margin-top:6px;text-align:right;" id="stuEta">Initialisation…</div>
-      </div>
-
-      <!-- RÉSULTAT -->
-      <div class="stu-card stu-result" id="stuResult">
-        <div class="stu-label">Vidéo générée</div>
-        <div class="stu-video-box" id="stuVideoBox">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--t2);font-size:12px;padding:30px;">
-            <div style="font-size:40px;">🎞️</div>
-            <div>Votre vidéo apparaîtra ici</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;" id="stuResultBadge">
-            <span style="color:var(--green);">●</span><span>Prêt</span>
-          </div>
-          <div style="background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.2);border-radius:20px;padding:3px 10px;font-size:10px;color:#4f8ef7;font-weight:600;" id="stuSeedTag">SEED #——</div>
-        </div>
+        <div id="stuFill"></div>
+        <div id="stuEta"></div>
+        <div id="stuProgEngine"></div>
+        <div id="stuVideoBox"></div>
+        <div id="stuResultBadge"></div>
+        <div id="stuSeedTag"></div>
         <div id="stuClipsList"></div>
-        <div class="stu-actions">
-          <a href="#" class="stu-dl-main" id="stuDlMain" style="display:none;">⬇ Télécharger</a>
-          <button class="stu-new-btn" onclick="stuReset()">✦ Nouveau</button>
-        </div>
+        <a id="stuDlMain" href="#"></a>
+        <div id="stuProg" class="stu-prog"></div>
+        <div id="stuResult" class="stu-result"></div>
       </div>
+      <button id="stuGenBtn" onclick="stuGenerate()"></button>
+      <span id="stuBtnIco"></span><span id="stuBtnTxt"></span>
+      <div class="stu-engine-grid" style="display:none;">
+        <div class="stu-eng on" data-engine="kling" onclick="stuSelectEngine('kling',this)"></div>
+        <div class="stu-eng" data-engine="luma" onclick="stuSelectEngine('luma',this)"></div>
+        <div class="stu-eng" data-engine="runway" onclick="stuSelectEngine('runway',this)"></div>
+        <div class="stu-eng" data-engine="pika" onclick="stuSelectEngine('pika',this)"></div>
+        <div class="stu-eng stu-eng-wide" data-engine="openai" onclick="stuSelectEngine('openai',this)"></div>
+      </div>
+    </div>
 
-    </div><!-- /stu-body -->
   </div>
 
 
