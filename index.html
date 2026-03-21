@@ -1241,10 +1241,10 @@
           <div class="stu-eng" onclick="stuSelectEngine('runway',this)" data-engine="runway">
             <div class="stu-eng-ico">🛫</div><div class="stu-eng-name">Runway</div>
           </div>
-          <div class="stu-eng" onclick="stuSelectEngine('pika',this)" data-engine="pika">
+          <div class="stu-eng" onclick="stuSelectEngine('pika',this)" data-engine="pika" style="display:none;">
             <div class="stu-eng-ico">🔥</div><div class="stu-eng-name">Pika</div>
           </div>
-          <div class="stu-eng stu-eng-wide" onclick="stuSelectEngine('openai',this)" data-engine="openai">
+          <div class="stu-eng stu-eng-wide" onclick="stuSelectEngine('openai',this)" data-engine="openai" style="display:none;">
             <div class="stu-eng-ico">🤖</div>
             <div><div class="stu-eng-name" style="font-size:11px;">OpenAI · Sora</div></div>
           </div>
@@ -1252,7 +1252,7 @@
       </div>
 
       <!-- CLÉ API -->
-      <div class="stu-card">
+      <div class="stu-card" style="display:none;">
         <div class="stu-label">Clé API Universelle</div>
         <div class="stu-api-row">
           <input type="password" class="stu-api-inp" id="stuApiInp"
@@ -1272,7 +1272,7 @@
       </div>
 
       <!-- PARAMÈTRES -->
-      <div class="stu-card">
+      <div class="stu-card" style="display:none;">
         <div class="stu-label">Paramètres</div>
         <div class="stu-params">
           <div><label class="stu-param-label">Clips</label>
@@ -1302,7 +1302,7 @@
       </div>
 
       <!-- PROMPT -->
-      <div class="stu-card">
+      <div class="stu-card" style="display:none;">
         <div class="stu-label">Description de la vidéo</div>
         <textarea class="stu-ta" id="stuPrompt" rows="4"
           placeholder="Ex : Une femme marche au coucher de soleil sur une plage tropicale, vagues douces, lumière dorée…"
