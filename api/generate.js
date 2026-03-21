@@ -1,7 +1,7 @@
 // ============================================================
 // PIREEL - api/generate.js
-// Route API Vercel — Générateur de Vidéos avec Protection Anti-Blocage
-// Rotation 30 clés | 1 région Vercel (cdg1) | Multi-modèles | Headers aléatoires
+// Route API Vercel — Générateur de Scripts Vidéo
+// Rotation : Grok xAI (30 clés) + Groq (30) + OpenAI (10) + Mistral (10)
 // ============================================================
 
 import { createClient } from "@supabase/supabase-js";
@@ -16,28 +16,41 @@ const supabase = createClient(
 );
 
 // ------------------------------------------------------------------
-// POOL DE CLÉS API (variables d'environnement Vercel)
-// Format : GROQ_KEY_01 … GROQ_KEY_30, OPENAI_KEY_01 … OPENAI_KEY_10, MISTRAL_KEY_01 … MISTRAL_KEY_10
+// POOL DE CLÉS API
+// Priorité : Grok xAI (XAI_KEY_01…30) → Groq → OpenAI → Mistral
 // ------------------------------------------------------------------
 function buildKeyPool() {
   const pool = [];
+
+  // ── Grok xAI (priorité 1) ──
+  for (let i = 1; i <= 30; i++) {
+    const key = process.env[`XAI_KEY_${String(i).padStart(2, "0")}`];
+    if (key) pool.push({ provider: "grok", key, index: i });
+  }
+
+  // ── Groq (priorité 2) ──
   for (let i = 1; i <= 30; i++) {
     const key = process.env[`GROQ_KEY_${String(i).padStart(2, "0")}`];
     if (key) pool.push({ provider: "groq", key, index: i });
   }
+
+  // ── OpenAI (priorité 3) ──
   for (let i = 1; i <= 10; i++) {
     const key = process.env[`OPENAI_KEY_${String(i).padStart(2, "0")}`];
     if (key) pool.push({ provider: "openai", key, index: i });
   }
+
+  // ── Mistral (priorité 4) ──
   for (let i = 1; i <= 10; i++) {
     const key = process.env[`MISTRAL_KEY_${String(i).padStart(2, "0")}`];
     if (key) pool.push({ provider: "mistral", key, index: i });
   }
+
   return pool;
 }
 
 // ------------------------------------------------------------------
-// ROUND ROBIN — Index de départ aléatoire (par cold start)
+// ROUND ROBIN — index aléatoire au démarrage
 // ------------------------------------------------------------------
 let rrIndex = Math.floor(Math.random() * 30);
 
@@ -49,8 +62,33 @@ function getNextKey(pool) {
 }
 
 // ------------------------------------------------------------------
-// APPELS API avec rotation headers (via utilitaire partagé)
+// APPELS API
 // ------------------------------------------------------------------
+async function callGrok(apiKey, prompt) {
+  const res = await fetch("https://api.x.ai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "grok-4-1-fast",
+      stream: false,
+      temperature: 0.85,
+      messages: [
+        { role: "system", content: "Tu es un expert en création de scripts vidéo courts et percutants pour les réseaux sociaux africains." },
+        { role: "user", content: prompt },
+      ],
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`GROK_${res.status}: ${err?.error?.message || res.statusText}`);
+  }
+  const data = await res.json();
+  return data.choices[0].message.content.trim();
+}
+
 async function callGroq(apiKey, prompt) {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
@@ -118,24 +156,23 @@ async function callMistral(apiKey, prompt) {
 }
 
 // ------------------------------------------------------------------
-// DISPATCH MULTI-MODÈLES avec fallback + jitter anti-bot
+// DISPATCH MULTI-MODÈLES avec fallback + jitter
 // ------------------------------------------------------------------
 async function generateWithFallback(pool, prompt) {
   const tried = new Set();
   let lastError = null;
 
-  for (let attempt = 0; attempt < 5; attempt++) {
+  for (let attempt = 0; attempt < 6; attempt++) {
     const entry = getNextKey(pool);
     const uniqKey = `${entry.provider}_${entry.index}`;
     if (tried.has(uniqKey)) continue;
     tried.add(uniqKey);
 
     try {
-      console.log(`[PIREEL] Tentative ${attempt + 1} — Clé: ${entry.provider.toUpperCase()}_${String(entry.index).padStart(2, "0")}`);
-
-      // Jitter entre tentatives pour éviter le fingerprinting de délai
+      console.log(`[PIREEL] Tentative ${attempt + 1} — ${entry.provider.toUpperCase()}_KEY_${String(entry.index).padStart(2, "0")}`);
       if (attempt > 0) await jitteredDelay(300 + Math.random() * 400);
 
+      if (entry.provider === "grok")    return { result: await callGrok(entry.key, prompt),    provider: entry.provider, keyIndex: entry.index };
       if (entry.provider === "groq")    return { result: await callGroq(entry.key, prompt),    provider: entry.provider, keyIndex: entry.index };
       if (entry.provider === "openai")  return { result: await callOpenAI(entry.key, prompt),  provider: entry.provider, keyIndex: entry.index };
       if (entry.provider === "mistral") return { result: await callMistral(entry.key, prompt), provider: entry.provider, keyIndex: entry.index };
@@ -164,7 +201,6 @@ const MACHINE_RULES = {
 // ------------------------------------------------------------------
 export default async function handler(req, res) {
 
-  // CORS
   res.setHeader("Access-Control-Allow-Origin", process.env.ALLOWED_ORIGIN || "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -246,7 +282,7 @@ Format de réponse OBLIGATOIRE :
 🏷️ HASHTAGS : [5-7 hashtags pertinents]
 💡 CONSEIL TOURNAGE : [1 astuce concrète]`;
 
-    // 7. Générer avec rotation de clés
+    // 7. Générer avec rotation de clés (Grok xAI en tête)
     const keyPool = buildKeyPool();
     if (keyPool.length === 0) {
       console.error("[PIREEL] ERREUR CRITIQUE: Aucune clé API configurée.");
@@ -266,16 +302,16 @@ Format de réponse OBLIGATOIRE :
 
     if (updateErr) console.error("[PIREEL] Erreur mise à jour Supabase:", updateErr);
 
-    // 9. Historique (optionnel)
+    // 9. Historique
     await supabase.from("generations").insert({
-      user_id: user.id,
-      sujet: sujet.trim(),
-      categorie: categorieLabel,
+      user_id:        user.id,
+      sujet:          sujet.trim(),
+      categorie:      categorieLabel,
       contenu,
       points_debites: 100,
-      provider_used: provider,
-      vercel_region: process.env.VERCEL_REGION || "cdg1",
-      created_at: new Date().toISOString(),
+      provider_used:  provider,
+      vercel_region:  process.env.VERCEL_REGION || "cdg1",
+      created_at:     new Date().toISOString(),
     }).select();
 
     // 10. Réponse finale
@@ -283,13 +319,13 @@ Format de réponse OBLIGATOIRE :
       success: true,
       contenu,
       meta: {
-        machine:           machine.label,
-        points_debites:    100,
-        solde_restant:     nouveauSolde,
+        machine:            machine.label,
+        points_debites:     100,
+        solde_restant:      nouveauSolde,
         videos_aujourd_hui: nouveauCompteur,
-        limite_jour:       machine.limite,
-        videos_restantes:  machine.limite - nouveauCompteur,
-        provider_ia:       provider,
+        limite_jour:        machine.limite,
+        videos_restantes:   machine.limite - nouveauCompteur,
+        provider_ia:        provider,
       },
     });
 
