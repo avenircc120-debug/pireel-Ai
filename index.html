@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PIREEL - Business & IA</title>
+  <style>
+    :root {
+      --bg:#000; --card:#121212; --gold:#ffcf00; --gold-dim:rgba(255,207,0,.10);
+      --line:#222; --t1:#fff; --t2:#999; --t3:#444;
+      --input-bg:#1e1f20; --green:#00d68f; --wa:#25D366; --tg:#29B6F6; --red:#ff4d6d;
+    }
+    * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--t1); font-family:-apple-system,sans-serif; overflow:hidden; }
+    #app { max-width:480px; margin:0 auto; height:100vh; display:flex; flex-direction:column; position:relative; overflow:hidden; }
+
+    /* VIEWS */
+    .view { display:none; flex:1; flex-direction:column; overflow-y:auto; padding-bottom:80px; }
+    .view::-webkit-scrollbar { display:none; }
+    .view.active { display:flex; }
+
+    /* TOPBAR */
+    .topbar { height:60px; display:flex; align-items:center; justify-content:space-between; padding:0 15px; background:var(--bg); border-bottom:1px solid var(--line); flex-shrink:0; position:sticky; top:0; z-index:50; }
+    .tb-logo { width:32px; height:32px; background:var(--gold); color:#000; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:900; }
+    .av-mini { width:32px; height:32px; background:var(--card); border:1.5px solid var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; cursor:pointer; color:var(--gold); font-weight:700; }
+
+    /* ACTUALITÉS */
+    #newsBox { padding:15px; transition:all .6s ease; overflow:hidden; max-height:200px; opacity:1; }
+    #newsBox.hidden { max-height:0; opacity:0; padding:0; margin:0; }
+
+    /* CADRE VIDÉO PUB */
+    .video-frame { margin:15px; height:200px; background:#000; border-radius:16px; border:1px solid var(--line); display:flex; flex-direction:column; justify-content:center; align-items:center; position:relative; overflow:hidden; transition:all .8s cubic-bezier(.4,0,.2,1); cursor:pointer; }
+    .video-frame.expanded { height:400px; margin-top:20px; }
+    .ad-tag { position:absolute; top:10px; left:10px; background:rgba(0,0,0,.6); padding:4px 8px; border-radius:4px; font-size:10px; border:1px solid rgba(255,255,255,.2); }
+
+    /* BANNIÈRE */
+    .banner { background:linear-gradient(90deg,#1a1a1a,#000); margin:10px; padding:15px; border-radius:12px; border:1px solid var(--line); display:flex; align-items:center; gap:12px; flex-shrink:0; position:relative; }
+    .banner-tag { position:absolute; top:4px; right:8px; font-size:8px; color:var(--t3); letter-spacing:1px; text-transform:uppercase; }
+
+    /* WALLET CHIP (points vidéo seulement) */
+    .w-chip { background:var(--gold-dim); border:1px solid rgba(255,207,0,.2); border-radius:20px; padding:5px 10px; font-size:11px; font-weight:700; color:var(--gold); cursor:pointer; white-space:nowrap; }
+
+    /* CHAT */
+    .chat-msgs { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; min-height:0; }
+    .chat-msgs::-webkit-scrollbar { display:none; }
+    .chat-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; }
+    .chat-icon { width:50px; height:50px; background:#1a1a1a; border-radius:12px; border:1px solid #333; display:flex; align-items:center; justify-content:center; margin-bottom:20px; }
+    .chat-input-zone { padding:0 15px 10px; flex-shrink:0; }
+    .plus-menu { display:none; grid-template-columns:repeat(4,1fr); gap:7px; padding:8px 0; }
+    .plus-menu.open { display:grid; }
+    .pm-opt { background:#1a1a1a; border:1px solid var(--line); border-radius:10px; padding:10px 6px; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; }
+    .pm-opt:active { border-color:var(--gold); background:var(--gold-dim); }
+    .pm-ico { font-size:18px; }
+    .pm-lbl { font-size:9px; font-weight:700; color:#555; text-align:center; }
+    .chat-bar { background:var(--input-bg); border-radius:30px; padding:5px 15px; display:flex; align-items:center; gap:10px; min-height:54px; }
+    .chat-input { flex:1; background:none; border:none; color:#fff; font-size:15px; outline:none; }
+    .chat-input::placeholder { color:#555; }
+    .btn-icon { background:none; border:none; color:#fff; font-size:24px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+
+    /* MESSAGES */
+    .msg { display:flex; gap:7px; max-width:88%; }
+    .msg-ai { align-self:flex-start; }
+    .msg-user { align-self:flex-end; flex-direction:row-reverse; }
+    .bbl { padding:9px 13px; border-radius:14px; font-size:13px; line-height:1.55; animation:msgIn .22s ease both; }
+    @keyframes msgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .bbl-ai { background:var(--card); border:1px solid var(--line); border-bottom-left-radius:4px; }
+    .bbl-user { background:#1c1500; border:1px solid rgba(255,207,0,.15); border-bottom-right-radius:4px; }
+    .bbl-result { background:#050f0a; border:1px solid rgba(0,214,143,.2); border-radius:13px; padding:12px 13px; font-size:12px; line-height:1.7; width:100%; }
+    .bbl-result-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .copy-micro { background:#1a1a1a; border:1px solid #333; color:#777; border-radius:6px; padding:3px 8px; font-size:10px; cursor:pointer; font-family:inherit; }
+    .msg-t { font-size:9px; color:var(--t3); padding:0 2px; margin-top:2px; }
+    .typing-bbl { background:var(--card); border:1px solid var(--line); border-radius:14px; border-bottom-left-radius:4px; padding:10px 14px; display:flex; gap:4px; align-items:center; }
+    .td { width:5px; height:5px; border-radius:50%; background:#555; animation:bounce 1.2s infinite; }
+    .td:nth-child(2){animation-delay:.18s} .td:nth-child(3){animation-delay:.36s}
+    @keyframes bounce { 0%,80%,100%{transform:translateY(0);opacity:.5} 40%{transform:translateY(-5px);opacity:1} }
+
+    /* SIM */
+    .sim-body { flex:1; padding:14px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; min-height:0; }
+    .sim-body::-webkit-scrollbar { display:none; }
+    .sec-lbl { font-size:10px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--t3); display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+    .sec-lbl::after { content:''; flex:1; height:1px; background:var(--line); }
+    .cntry-row { display:flex; gap:8px; }
+    .cntry-sel { flex:1; background:#1a1a1a; border:1.5px solid var(--line); border-radius:12px; color:var(--t1); font-family:inherit; font-size:13px; padding:12px; outline:none; appearance:none; min-width:0; }
+    .cntry-sel:focus { border-color:var(--gold); }
+    .cntry-sel option { background:#121212; }
+    .num-card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; display:flex; align-items:center; gap:12px; }
+    .num-val { font-size:20px; font-weight:800; letter-spacing:2px; line-height:1; }
+    .num-copy { margin-left:auto; background:#1a1a1a; border:1px solid var(--line); border-radius:8px; padding:7px 11px; font-size:11px; font-weight:700; color:var(--t2); cursor:pointer; font-family:inherit; }
+    .num-copy:active { color:var(--gold); border-color:var(--gold); }
+    .sms-box { background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+    .sms-wait { padding:28px 16px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px; }
+    .sms-pulse { width:54px; height:54px; border-radius:50%; background:rgba(0,214,143,.08); border:2px solid rgba(0,214,143,.25); display:flex; align-items:center; justify-content:center; font-size:22px; animation:ringPulse 2.2s infinite; }
+    @keyframes ringPulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,214,143,.3)} 60%{box-shadow:0 0 0 14px rgba(0,214,143,0)} }
+    .sms-recv { display:none; flex-direction:column; gap:10px; padding:14px; }
+    .digits { display:flex; gap:7px; justify-content:center; margin:4px 0; }
+    .dig { width:36px; height:46px; background:#1a1a1a; border:1.5px solid rgba(0,214,143,.3); border-radius:9px; display:grid; place-items:center; font-size:22px; font-weight:900; color:var(--green); animation:digIn .2s ease both; }
+    @keyframes digIn { from{transform:translateY(-8px);opacity:0} to{transform:translateY(0);opacity:1} }
+    .sms-full { background:#1a1a1a; border-radius:8px; padding:8px 10px; font-size:11px; color:var(--t2); line-height:1.5; }
+
+    /* ARCHIVES */
+    .arc-item { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; display:flex; align-items:center; gap:12px; cursor:pointer; margin-bottom:8px; }
+    .arc-item:active { border-color:var(--gold); }
+
+    /* NAV */
+    #nav { position:absolute; bottom:0; left:0; right:0; height:75px; background:#000; border-top:1px solid var(--line); display:grid; grid-template-columns:repeat(5,1fr); z-index:1000; }
+    .ni { border:none; background:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:#444; cursor:pointer; }
+    .ni.on { color:var(--gold); }
+    .ni-icon { font-size:20px; }
+    .ni-label { font-size:10px; font-weight:600; }
+
+    /* MODAL */
+    .overlay { position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:2000; display:none; align-items:flex-end; max-width:480px; margin:0 auto; }
+    .overlay.open { display:flex; }
+    .sheet { background:#121212; width:100%; border-radius:25px 25px 0 0; padding:20px 22px 30px; border:1px solid var(--line); border-bottom:none; animation:sheetUp .28s ease; }
+    @keyframes sheetUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+    .sheet-bar { width:36px; height:4px; background:#333; border-radius:2px; margin:0 auto 18px; }
+
+    /* CHAT BAR LIMITE */
+    .chat-bar.over { border:1.5px solid var(--red) !important; box-shadow:0 0 0 3px rgba(255,77,109,.15); }
+    #charCount.over { color:var(--red) !important; font-weight:700; }
+    #sendBtn:disabled { opacity:.4; pointer-events:none; }
+
+    /* CARTE GÉNÉRATION */
+    .gen-card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; width:100%; }
+    .gen-card-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:6px; }
+    .gen-badge { font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--green); }
+    .seed-chip { display:inline-flex; align-items:center; gap:4px; background:rgba(41,182,246,.08); border:1px solid rgba(41,182,246,.2); border-radius:20px; padding:3px 8px; font-size:10px; color:#29B6F6; font-weight:600; }
+    .clip-row { display:flex; align-items:center; gap:10px; background:#1a1a1a; border-radius:10px; padding:10px 12px; margin-bottom:7px; }
+    .clip-num { width:24px; height:24px; border-radius:50%; background:var(--gold-dim); border:1px solid rgba(255,207,0,.3); display:grid; place-items:center; font-size:10px; font-weight:800; color:var(--gold); flex-shrink:0; }
+    .clip-info { flex:1; }
+    .clip-title { font-size:12px; font-weight:700; }
+    .clip-sub   { font-size:10px; color:var(--t2); margin-top:2px; }
+    .gen-progress { height:3px; background:#2a2a2a; border-radius:2px; overflow:hidden; margin:10px 0; }
+    .gen-progress-fill { height:100%; background:linear-gradient(90deg,var(--gold),var(--green)); border-radius:2px; width:0%; transition:width .6s ease; }
+    .gen-final { background:#050f0a; border:1px solid rgba(0,214,143,.2); border-radius:10px; padding:10px 12px; display:flex; align-items:center; gap:10px; margin-top:4px; }
+    .dl-btn { background:var(--gold); color:#000; border:none; border-radius:8px; padding:7px 12px; font-size:11px; font-weight:800; cursor:pointer; white-space:nowrap; flex-shrink:0; }
+
+    /* MODAL ABONNEMENT */
+    .sub-card { background:var(--card); border:1.5px solid var(--line); border-radius:16px; padding:18px; margin-bottom:12px; cursor:pointer; position:relative; transition:border-color .2s; }
+    .sub-card.popular { border-color:var(--gold); }
+    .sub-popular-tag { position:absolute; top:0; right:14px; background:var(--gold); color:#000; font-size:9px; font-weight:800; padding:3px 8px; border-radius:0 0 8px 8px; letter-spacing:1px; text-transform:uppercase; }
+    .sub-price { font-size:26px; font-weight:900; color:var(--gold); margin:6px 0 4px; }
+    .sub-name  { font-size:15px; font-weight:800; }
+    .sub-desc  { font-size:12px; color:var(--t2); line-height:1.6; margin-top:6px; }
+    .sub-perks { margin-top:10px; display:flex; flex-direction:column; gap:5px; }
+    .perk { font-size:12px; color:var(--t2); display:flex; align-items:center; gap:7px; }
+    .perk::before { content:'✓'; color:var(--green); font-weight:700; }
+    .sub-btn { width:100%; margin-top:12px; padding:13px; background:var(--gold); color:#000; border:none; border-radius:12px; font-weight:800; font-size:14px; cursor:pointer; }
+
+    /* TOAST */
+    #toast { position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#fff; color:#000; padding:10px 20px; border-radius:20px; font-size:12px; font-weight:bold; display:none; z-index:4000; white-space:nowrap; max-width:calc(100vw - 32px); text-align:center; }
+    #toast.show { display:block; }
+  </style>
+
+  <script>
+    /* ══════════════════════════════
+       MODE TEST — Sans Supabase
+       Tout fonctionne localement
+    ══════════════════════════════ */
+    var CONFIG = {
+      API_BASE:  '',        // vide = mode démo
+      APP1_URL:  '',        // vide = mode démo
+      TEST_MODE: true,
+    };
+
+    /* ── MODE TEST ── */
+    var TEST_MODE = true; // ← Mettre false en production
+
+    /* ── ÉTAT ── */
+    var S = { name:'', code:'', pts:0, machine:'elite', vids:0, archives:[], premium:false, parrain_ok:false };
+    var db = null;
+
+    var LIMITS = {bronze:1, argent:3, or:4, elite:4};
+    var ICONS  = {bronze:'🥉', argent:'🥈', or:'🥇', elite:'👑'};
+    var LABELS = {bronze:'2 500 F', argent:'3 500 F', or:'4 500 F', elite:'Élite 4 500 F'};
+
+    var CD = {
+      US:{flag:'🇺🇸',name:'États-Unis',pfx:'+1',len:10},
+      GB:{flag:'🇬🇧',name:'Royaume-Uni',pfx:'+44',len:10},
+      FR:{flag:'🇫🇷',name:'France',pfx:'+33',len:9},
+      DE:{flag:'🇩🇪',name:'Allemagne',pfx:'+49',len:10},
+      NG:{flag:'🇳🇬',name:'Nigeria',pfx:'+234',len:10},
+      GH:{flag:'🇬🇭',name:'Ghana',pfx:'+233',len:9},
+      SN:{flag:'🇸🇳',name:'Sénégal',pfx:'+221',len:9},
+      CI:{flag:'🇨🇮',name:"Côte d'Ivoire",pfx:'+225',len:10},
+      RU:{flag:'🇷🇺',name:'Russie',pfx:'+7',len:10},
+      BR:{flag:'🇧🇷',name:'Brésil',pfx:'+55',len:11},
+      IN:{flag:'🇮🇳',name:'Inde',pfx:'+91',len:10},
+    };
+
+    /* ── TOAST ── */
+    function toast_(m) {
+      var t = document.getElementById('toast');
+      if (!t) return;
+      t.textContent = m;
+      t.classList.add('show');
+      clearTimeout(t._to);
+      t._to = setTimeout(function() { t.classList.remove('show'); }, 2500);
+    }
+
+    /* ── NAVIGATION ── */
+    function go(idx) {
+      ['v0','v1','v2','v3','v4'].forEach(function(v, i) {
+        var ve = document.getElementById(v);
+        var ne = document.getElementById('n' + i);
+        if (ve) ve.classList.toggle('active', i === idx);
+        if (ne) ne.classList.toggle('on', i === idx);
+      });
+      closePlus();
+    }
+
+    /* ── PROFIL ── */
+    function openProfile() {
+      render();
+      document.getElementById('pModal').classList.add('open');
+    }
+    function closeProfile() {
+      document.getElementById('pModal').classList.remove('open');
+    }
+    function openWallet() { openProfile(); }
+
+    /* ── PLUS MENU ── */
+    function togglePlus() {
+      var m = document.getElementById('plusMenu');
+      var b = document.getElementById('plusBtn');
+      if (!m) return;
+      var open = m.classList.toggle('open');
+      var sp = b ? b.querySelector('span') : null;
+      if (sp) sp.textContent = open ? '✕' : '+';
+    }
+    function closePlus() {
+      var m = document.getElementById('plusMenu');
+      var b = document.getElementById('plusBtn');
+      if (m) m.classList.remove('open');
+      var sp = b ? b.querySelector('span') : null;
+      if (sp) sp.textContent = '+';
+    }
+
+    /* ── MODAL ABONNEMENT ── */
+    function openSubs() {
+      closePlus();
+      document.getElementById('subModal').classList.add('open');
+    }
+    function closeSubs() {
+      document.getElementById('subModal').classList.remove('open');
+    }
+    function closeSub() { closeSubs(); }
+    function openSubModal() {
+      closePlus();
+      document.getElementById('subModal').classList.add('open');
+    }
+    function subscribe(plan) {
+      var prices = { week:'1 500 FCFA', month:'5 000 FCFA' };
+      closeSubs();
+      toast_('💳 Redirection paiement ' + prices[plan] + '…');
+      setTimeout(function() {
+        window.location.href = CONFIG.APP1_URL + '/subscribe?plan=' + plan;
+      }, 800);
+    }
+
+    /* ── COMPTEUR CARACTÈRES (bordure rouge à 500) ── */
+    var MAX_CHARS  = 500;
+    var COST_VIDEO = 100;
+    var PROMPT_SUFFIX = ', Cinematic 4K, realistic, slow zoom-in';
+
+    function onChatInput(el) {
+      var len  = el.value.length;
+      var bar  = document.getElementById('chatBar');
+      var cnt  = document.getElementById('charCount');
+      var over = len > MAX_CHARS;
+      if (cnt) { cnt.textContent = len + '/500'; cnt.style.color = over ? '#ff4d6d' : '#444'; }
+      if (bar) { bar.style.borderColor = over ? '#ff4d6d' : ''; bar.style.boxShadow = over ? '0 0 0 3px rgba(255,77,109,.15)' : ''; }
+    }
+
+    /* ── GÉNÉRATION VIDÉO 3×10s (arrière-plan invisible) ── */
+    async function sendMsg() {
+      var inp  = document.getElementById('chatInput');
+      var text = inp.value.trim();
+      if (!text) return;
+
+      /* Vérif 500 chars */
+      if (text.length > MAX_CHARS) {
+        toast_('⛔ Texte trop long ! Maximum 500 caractères.');
+        return;
+      }
+      /* Vérif points */
+      if (S.pts < COST_VIDEO) {
+        openSubs();
+        toast_('⚠️ Solde insuffisant — abonnez-vous pour continuer');
+        return;
+      }
+
+      closePlus();
+      addMsg(text, 'user', false);
+      inp.value = '';
+      onChatInput(inp);
+      addTyping();
+
+      /* ── SEED unique partagé pour les 3 clips ── */
+      var SEED = Math.floor(Math.random() * 999999) + 100000;
+
+      /* ── Découper en 3 segments de ~10s ── */
+      var words  = text.split(' ');
+      var third  = Math.ceil(words.length / 3);
+      var segs   = [
+        words.slice(0, third).join(' '),
+        words.slice(third, third*2).join(' ') || words.slice(0, third).join(' '),
+        words.slice(third*2).join(' ')         || words.slice(0, third).join(' '),
+      ];
+
+      try {
+        var r = await fetch(CONFIG.API_BASE + '/api/studio-generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ seed:SEED, segments:segs, prompt_suffix:PROMPT_SUFFIX, code_acces:S.code }),
+        });
+        var d = await r.json();
+        rmTyping();
+        S.pts -= COST_VIDEO;
+        render();
+
+        if (d.success) {
+          showGenResult(SEED, segs, d.video_url, d.test_mode);
+        } else {
+          addMsg('❌ ' + (d.error || 'Erreur génération.'), 'ai', false);
+        }
+      } catch(e) {
+        rmTyping();
+        /* Mode démo sans API */
+        S.pts -= COST_VIDEO;
+        render();
+        showGenResult(SEED, segs, null, true);
+      }
+    }
+
+    /* ── AFFICHER RÉSULTAT GÉNÉRATION ── */
+    function showGenResult(seed, segs, videoUrl, isTest) {
+      var card = '<div style="background:#050f0a;border:1px solid rgba(0,214,143,.2);border-radius:14px;padding:14px;width:100%;">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
+        + '<span style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#00d68f;">✅ ' + (isTest ? 'Simulation' : 'Vidéo générée') + '</span>'
+        + '<span style="background:rgba(41,182,246,.1);border:1px solid rgba(41,182,246,.2);border-radius:20px;padding:3px 8px;font-size:10px;color:#29B6F6;font-weight:600;">🔑 SEED #' + seed + '</span>'
+        + '</div>'
+        + segs.map(function(s, i) {
+            return '<div style="background:#1a1a1a;border-radius:10px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;">'
+              + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(255,207,0,.1);border:1px solid rgba(255,207,0,.2);display:grid;place-items:center;font-size:10px;font-weight:800;color:#ffcf00;flex-shrink:0;">' + (i+1) + '</div>'
+              + '<div style="flex:1;font-size:11px;color:#888;">Clip ' + (i+1) + ' · 10s — ' + s.substring(0,40) + (s.length>40?'…':'') + '</div>'
+              + '<div style="font-size:14px;">✅</div>'
+              + '</div>';
+          }).join('')
+        + '<div style="background:#0a0a0a;border-radius:10px;padding:10px 12px;margin-top:4px;display:flex;align-items:center;gap:10px;">'
+        + '<div style="font-size:18px;">🎞️</div>'
+        + '<div style="flex:1;font-size:11px;"><span style="color:#00d68f;font-weight:700;">Vidéo 30s</span> · Cross-fade 0.5s · Cinematic 4K'
+        + (isTest ? '<br><span style="color:#444;font-size:10px;">Mode test — ajoutez une clé API pour la vraie génération</span>' : '') + '</div>'
+        + (videoUrl
+            ? '<a href="' + videoUrl + '" download><button style="background:#ffcf00;color:#000;border:none;border-radius:8px;padding:7px 11px;font-size:11px;font-weight:800;cursor:pointer;">⬇</button></a>'
+            : '<button onclick="toast_(\'🔗 Clé API requise\')" style="background:#1a1a1a;border:1px solid #333;color:#666;border-radius:8px;padding:7px 11px;font-size:11px;cursor:pointer;">▶ Test</button>')
+        + '</div></div>';
+
+      addMsg(card, 'ai', true);
+      toast_('🎬 Vidéo générée ! -' + COST_VIDEO + ' pts');
+    }
+
+    /* ── PHOTO ── */
+    var S_photo = null; // stocke la photo base64
+
+    function choosePhoto() {
+      closePlus();
+      document.getElementById('fileIn').click();
+    }
+
+    function onPhotoChosen(input) {
+      if (!input.files || !input.files[0]) return;
+      var file = input.files[0];
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        S_photo = e.target.result; // base64
+        // Afficher l'aperçu dans la barre
+        var img  = document.getElementById('photoPreview');
+        var wrap = document.getElementById('photoPreviewWrap');
+        if (img)  img.src = S_photo;
+        if (wrap) wrap.style.display = 'block';
+        // Focus sur le champ texte
+        var inp = document.getElementById('chatInput');
+        if (inp) { inp.placeholder = 'Décrivez ce que vous voulez voir…'; inp.focus(); }
+        toast_('📸 Photo ajoutée — écrivez votre description');
+      };
+      reader.readAsDataURL(file);
+      input.value = ''; // reset pour permettre de rechoisir
+    }
+
+    function removePhoto() {
+      S_photo = null;
+      var wrap = document.getElementById('photoPreviewWrap');
+      var img  = document.getElementById('photoPreview');
+      var inp  = document.getElementById('chatInput');
+      if (wrap) wrap.style.display = 'none';
+      if (img)  img.src = '';
+      if (inp)  inp.placeholder = 'Décrivez votre vidéo…';
+    }
+
+    /* ── FRAME VIDÉO ── */
+    function videoFrameClick() { toast_('📣 Publicité partenaire'); }
+
+    /* ── RENDER ── */
+    function render() {
+      var m = S.machine;
+      var ini = (S.name[0] || 'U').toUpperCase();
+      function set(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
+      function html(id, v) { var e = document.getElementById(id); if (e) e.innerHTML = v; }
+      set('avLetter', ini);
+      set('pAvLetter', ini);
+      set('pName', S.name);
+      set('pCode', S.code || '——');
+      html('pMachine',
+        '<span style="background:var(--gold-dim);color:var(--gold);border:1px solid rgba(255,207,0,.2);border-radius:20px;padding:3px 9px;font-size:11px;font-weight:700;">'
+        + ICONS[m] + ' Machine ' + LABELS[m] + '</span>'
+      );
+      set('chatPts', S.pts);
+    }
+
+    /* ── CHAT ── */
+    function nowTime() {
+      return new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+    }
+
+    function addMsg(content, type, isResult) {
+      var wrap = document.getElementById('msgs');
+      var empty = document.getElementById('chatEmpty');
+      if (empty) empty.style.display = 'none';
+      var d = document.createElement('div');
+      var isU = (type === 'user');
+      var av = '<div style="width:24px;height:24px;border-radius:50%;background:var(--gold);display:grid;place-items:center;font-size:10px;flex-shrink:0;align-self:flex-end;color:#000;">🤖</div>';
+      if (isResult) {
+        d.className = 'msg msg-ai';
+        d.style.maxWidth = '96%';
+        d.innerHTML = av
+          + '<div style="flex:1;min-width:0;">'
+          + '<div class="bbl-result">'
+          + '<div class="bbl-result-top">'
+          + '<span style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--green);">✅ Script généré</span>'
+          + '<button class="copy-micro" onclick="cpBbl(this)">Copier</button>'
+          + '</div>' + content + '</div>'
+          + '<div class="msg-t">' + nowTime() + '</div></div>';
+      } else {
+        d.className = 'msg msg-' + type;
+        d.innerHTML = (!isU ? av : '')
+          + '<div><div class="bbl bbl-' + type + '">' + content + '</div>'
+          + '<div class="msg-t" style="' + (isU ? 'text-align:right' : '') + '">' + nowTime() + '</div></div>';
+      }
+      wrap.appendChild(d);
+      wrap.scrollTop = wrap.scrollHeight;
+    }
+
+    function addTyping() {
+      var wrap = document.getElementById('msgs');
+      var d = document.createElement('div');
+      d.className = 'msg msg-ai';
+      d.id = 'typing';
+      d.innerHTML = '<div style="width:24px;height:24px;border-radius:50%;background:var(--gold);display:grid;place-items:center;font-size:10px;color:#000;flex-shrink:0;align-self:flex-end;">🤖</div>'
+        + '<div>'
+        + '<div class="typing-bbl"><div class="td"></div><div class="td"></div><div class="td"></div></div>'
+        + '<div id="typingMsg" style="font-size:11px;color:var(--t2);margin-top:6px;padding:0 2px;line-height:1.5;transition:opacity .4s;">Votre vidéo est en cours de création…</div>'
+        + '</div>';
+      wrap.appendChild(d);
+      wrap.scrollTop = wrap.scrollHeight;
+
+      /* Messages qui tournent toutes les 3 secondes */
+      var msgs = [
+        'Votre vidéo est en cours de création…',
+        'Nous préparons votre contenu, un instant…',
+        'Votre vidéo sera prête dans quelques secondes…',
+        'Génération en cours, merci de patienter…',
+        'Presque terminé, encore un moment…',
+        'Votre vidéo arrive bientôt…',
+        'Finalisation en cours…',
+      ];
+      var i = 0;
+      d._interval = setInterval(function() {
+        var el = document.getElementById('typingMsg');
+        if (!el) return;
+        el.style.opacity = '0';
+        setTimeout(function() {
+          i = (i + 1) % msgs.length;
+          if (el) { el.textContent = msgs[i]; el.style.opacity = '1'; }
+        }, 400);
+      }, 3000);
+    }
+
+    function rmTyping() {
+      var t = document.getElementById('typing');
+      if (t) {
+        if (t._interval) clearInterval(t._interval);
+        t.remove();
+      }
+    }
+
+    async function sendMsg() {
+      var inp = document.getElementById('chatInput');
+      var text = inp.value.trim();
+      if (!text) return;
+      if (text.length > MAX_CHARS) {
+        toast_('⛔ Maximum 500 caractères !');
+        return;
+      }
+      if (S.pts < COST_VIDEO) {
+        openSubModal();
+        toast_('⚠️ Solde insuffisant — abonnez-vous !');
+        return;
+      }
+
+      closePlus();
+
+      /* Afficher message avec photo si présente */
+      if (S_photo) {
+        addMsg('<img src="' + S_photo + '" style="width:100%;max-width:180px;border-radius:10px;display:block;margin-bottom:6px;">' + text, 'user', false);
+      } else {
+        addMsg(text, 'user', false);
+      }
+      var photoData = S_photo;
+      removePhoto();
+      inp.value = '';
+      onChatInput(inp);
+      addTyping();
+
+      /* SEED unique partagé pour les 3 clips */
+      var SEED = Math.floor(Math.random() * 999999) + 100000;
+      var words = text.split(' ');
+      var third = Math.ceil(words.length / 3);
+      var segs  = [
+        words.slice(0, third).join(' '),
+        words.slice(third, third*2).join(' ') || words.slice(0, third).join(' '),
+        words.slice(third*2).join(' ')         || words.slice(0, third).join(' '),
+      ];
+
+      try {
+        var r = await fetch(CONFIG.API_BASE + '/api/studio-generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ seed:SEED, segments:segs, prompt_suffix:PROMPT_SUFFIX, code_acces:S.code, image:photoData }),
+        });
+        var d = await r.json();
+        rmTyping();
+        S.pts -= COST_VIDEO;
+        render();
+        showGenResult(SEED, segs, d.video_url, d.test_mode);
+      } catch(e) {
+        rmTyping();
+        S.pts -= COST_VIDEO;
+        render();
+        showGenResult(SEED, segs, null, true);
+      }
+    }
+
+    function cpBbl(btn) {
+      var t = btn.closest('.bbl-result').innerText.replace('Copier','').replace('✅ Script généré','').trim();
+      navigator.clipboard.writeText(t).catch(function(){});
+      btn.textContent = '✓ Copié';
+      btn.style.color = 'var(--green)';
+      setTimeout(function() { btn.textContent = 'Copier'; btn.style.color = ''; }, 2000);
+    }
+
+    /* ── ARCHIVES ── */
+    function refreshArchives() {
+      var list = document.getElementById('archiveList');
+      if (!list || !S.archives.length) return;
+      list.innerHTML = S.archives.map(function(a) {
+        return '<div class="arc-item">'
+          + '<div style="font-size:20px;flex-shrink:0;">📄</div>'
+          + '<div style="flex:1;min-width:0;">'
+          + '<div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + a.sujet + '</div>'
+          + '<div style="font-size:11px;color:var(--t3);margin-top:2px;">' + a.date + '</div>'
+          + '</div><div style="font-size:18px;color:var(--t3);">›</div></div>';
+      }).join('');
+    }
+
+    /* ── SIM — PAIEMENT DIRECT ── */
+    function payAndGenNum(svc) {
+      toast_('💳 Redirection vers le paiement…');
+      setTimeout(function() {
+        window.location.href = CONFIG.APP1_URL + '/pay-sim?service=' + svc + '&amount=3000&redirect=' + encodeURIComponent(window.location.href + '?paid=1&svc=' + svc);
+      }, 800);
+    }
+
+    async function genNum(svc) {
+      var key = document.getElementById(svc + 'Ctry').value;
+      var c = CD[key] || CD.US;
+      var num = '';
+      for (var i = 0; i < c.len; i++) {
+        num += (i === 0) ? String(Math.floor(Math.random() * 9) + 1) : String(Math.floor(Math.random() * 10));
+      }
+      var fmt = c.pfx + ' ' + num.replace(/(\d{3})(\d{3})(\d+)/, '$1 $2 $3');
+      if (svc === 'wa') {
+        S.waNum = fmt;
+        document.getElementById('waFlag').textContent    = c.flag;
+        document.getElementById('waNum').textContent     = fmt;
+        document.getElementById('waCtryLbl').textContent = c.name;
+        document.getElementById('waNumCard').style.display = 'block';
+        document.getElementById('waSmsBox').style.display  = 'block';
+        document.getElementById('waWait').style.display    = 'flex';
+        document.getElementById('waRecv').style.display    = 'none';
+      } else {
+        S.tgNum = fmt;
+        document.getElementById('tgFlag').textContent    = c.flag;
+        document.getElementById('tgNum').textContent     = fmt;
+        document.getElementById('tgCtryLbl').textContent = c.name;
+        document.getElementById('tgNumCard').style.display = 'block';
+        document.getElementById('tgSmsBox').style.display  = 'block';
+        document.getElementById('tgWait').style.display    = 'flex';
+        document.getElementById('tgRecv').style.display    = 'none';
+      }
+      toast_('📱 Numéro généré — En attente du SMS…');
+    }
+
+    function simSms(svc) {
+      toast_('⏳ Simulation en cours…');
+      setTimeout(function() {
+        var code = String(Math.floor(100000 + Math.random() * 900000));
+        var msg = (svc === 'wa')
+          ? 'Your WhatsApp code: ' + code + ". Don't share this code."
+          : 'Telegram code: ' + code + '. Do not share this code.';
+        recvSms(svc, code, msg);
+      }, 1800);
+    }
+
+    function recvSms(svc, code, fullMsg) {
+      document.getElementById(svc + 'Digs').innerHTML = code.split('').map(function(d, i) {
+        return '<div class="dig" style="animation-delay:' + (i * .07) + 's">' + d + '</div>';
+      }).join('');
+      document.getElementById(svc + 'Full').textContent = fullMsg || '';
+      document.getElementById(svc + 'Wait').style.display = 'none';
+      document.getElementById(svc + 'Recv').style.display = 'flex';
+      toast_('✅ Code SMS reçu : ' + code);
+    }
+
+    function copyNum(svc) {
+      var n = (svc === 'wa') ? S.waNum : S.tgNum;
+      navigator.clipboard.writeText(n || '').catch(function(){});
+      toast_('📋 Numéro copié');
+    }
+
+    function copyCode(svc) {
+      var digs = document.getElementById(svc + 'Digs');
+      var code = Array.from(digs.querySelectorAll('.dig')).map(function(d) { return d.textContent; }).join('');
+      navigator.clipboard.writeText(code).catch(function(){});
+      toast_('📋 Code copié : ' + code);
+    }
+
+    function shareCode() {
+      closePlus();
+      if (navigator.share) {
+        navigator.share({title:'PIREEL', text:'Rejoins PIREEL avec mon code : ' + S.code});
+      } else {
+        navigator.clipboard.writeText(S.code).catch(function(){});
+        toast_('🤝 Code copié : ' + S.code);
+      }
+    }
+
+    /* ── ROTATION PUBS PARTENAIRES ── */
+    var ADS = [
+      {e:'🛒', t:'Boutique Cotonou',  s:"Soldes — jusqu'à -50%"},
+      {e:'🌾', t:'AgriFormation BJ',  s:'Formation agriculture bio'},
+      {e:'💻', t:'Tech Africa',       s:'Apprenez le code en 3 mois'},
+      {e:'💊', t:'Pharmacie Express', s:'Livraison à domicile'},
+      {e:'🏗️', t:'BTP Solutions',    s:'Matériaux — meilleurs prix'},
+    ];
+    var adIdx = 0;
+    function startAdRotation() {
+      setInterval(function() {
+        adIdx = (adIdx + 1) % ADS.length;
+        var a = ADS[adIdx];
+        var e  = document.getElementById('adEmoji');
+        var tt = document.getElementById('adTitle');
+        var ss = document.getElementById('adSub');
+        if (e)  e.textContent  = a.e;
+        if (tt) tt.textContent = a.t;
+        if (ss) ss.textContent = a.s;
+      }, 5000);
+    }
+
+    /* ── LOAD USER ── */
+    async function loadUser() {
+      var saved = sessionStorage.getItem('pireel_user');
+      if (saved) {
+        try {
+          var u = JSON.parse(saved);
+          S.name    = ((u.prenom || '') + ' ' + (u.nom || '')).trim() || 'Mon Compte';
+          S.code    = u.code_acces || '';
+          S.pts     = u.points_video || u.points_solde || 0;
+          S.machine = (u.type_machine || 'bronze').toLowerCase();
+          S.vids    = u.daily_vid_count || 0;
+          render();
+          return;
+        } catch(e) {}
+      }
+      /* Mode test / démo */
+      S.name = 'Demo User'; S.code = 'DEMO01';
+      S.pts     = TEST_MODE ? 10000 : 250;
+      S.machine = TEST_MODE ? 'elite' : 'argent';
+      S.vids    = 0;
+      S.premium = TEST_MODE;
+      render();
+    }
+
+    /* ── VÉRIFIER RETOUR PAIEMENT ── */
+    function checkPaymentReturn() {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('paid') === '1') {
+        var svc = params.get('svc') || 'wa';
+        go(svc === 'wa' ? 2 : 3);
+        toast_('✅ Paiement confirmé ! Génération du numéro…');
+        setTimeout(function() { genNum(svc); }, 1000);
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+
+    /* ── INIT ── */
+    document.addEventListener('DOMContentLoaded', function() {
+      loadUser();
+
+      setTimeout(function() {
+        var n = document.getElementById('newsBox');
+        var v = document.getElementById('mainVideo');
+        if (n) n.classList.add('hidden');
+        if (v) v.classList.add('expanded');
+      }, 3000);
+
+      startAdRotation();
+      checkPaymentReturn();
+
+      var ci = document.getElementById('chatInput');
+      if (ci) {
+        ci.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') sendMsg();
+        });
+      }
+    });
+  </script>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ ACCUEIL ══ -->
+  <div id="v0" class="view active">
+    <div class="topbar">
+      <div class="tb-logo">P</div>
+      <div style="font-weight:800;font-size:18px;">PIREEL</div>
+      <div onclick="openProfile()"><div class="av-mini" id="avLetter">U</div></div>
+    </div>
+
+    <div id="newsBox">
+      <div style="font-size:12px;color:#555;font-weight:bold;margin-bottom:12px;padding:15px 15px 0;">ACTUALITÉS</div>
+      <div style="background:var(--card);padding:16px;border-radius:14px;border:1px solid var(--line);margin:0 15px;">
+        <div style="font-weight:700;margin-bottom:4px;">Bienvenue sur PIREEL</div>
+        <div style="font-size:12px;color:var(--t2);">Générez vos scripts vidéo et obtenez des numéros SIM temporaires.</div>
+      </div>
+    </div>
+
+    <!-- ZONE PUB PARTENAIRE — remplacer par tag AdMob -->
+    <div class="video-frame" id="mainVideo" onclick="videoFrameClick()">
+      <div class="ad-tag">PUBLICITÉ</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;height:100%;justify-content:center;">
+        <div style="font-size:40px;" id="adEmoji">🎬</div>
+        <div style="font-size:13px;font-weight:700;" id="adTitle">Vidéo Partenaire</div>
+        <div style="font-size:11px;color:var(--t2);" id="adSub">Votre pub ici — <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6b0804051f0a081f2b1b02190e0e0745080406">[email&#160;protected]</a></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ VIDÉO IA ══ -->
+  <div id="v1" class="view" style="overflow:hidden;">
+    <!-- BANNIÈRE PUB — remplacer par tag AdMob Banner -->
+    <div class="banner">
+      <span style="font-size:18px;">✨</span>
+      <div style="flex:1;font-size:11px;color:var(--t2);">Bannière Publicitaire — Boostez vos vidéos ici.</div>
+      <span class="banner-tag">PUB</span>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;padding:4px 15px 2px;flex-shrink:0;">
+      <div class="w-chip" onclick="openWallet()">⚡ <span id="chatPts">0</span> pts</div>
+    </div>
+
+    <div class="chat-msgs" id="msgs">
+      <div class="chat-empty" id="chatEmpty">
+        <div class="chat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </div>
+        <div style="font-size:22px;font-weight:600;margin-bottom:10px;">Discussion Vidéo IA</div>
+        <div style="font-size:13px;color:#777;max-width:85%;line-height:1.7;">
+          Décrivez votre scène en <strong style="color:var(--gold);">500 caractères max</strong>.<br>
+          Je génère <strong style="color:var(--gold);">3 clips de 10s</strong> avec le même SEED et les fusionne en une vidéo fluide de 30s.
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input-zone">
+      <!-- Plus menu -->
+      <div class="plus-menu" id="plusMenu">
+        <div class="pm-opt" onclick="openSubModal()">
+          <div class="pm-ico">⭐</div>
+          <div class="pm-lbl">Abonnement</div>
+        </div>
+        <div class="pm-opt" onclick="choosePhoto()">
+          <div class="pm-ico">🖼️</div>
+          <div class="pm-lbl">Choisir une photo</div>
+        </div>
+        <div class="pm-opt" onclick="shareCode()">
+          <div class="pm-ico">🤝</div>
+          <div class="pm-lbl">Parrainer</div>
+        </div>
+      </div>
+      <input type="file" id="fileIn" accept="image/*" hidden onchange="onPhotoChosen(this)">
+
+      <!-- Aperçu photo choisie (apparaît au-dessus de la barre) -->
+      <div id="photoPreviewWrap" style="display:none;padding:6px 2px 4px;position:relative;">
+        <div style="position:relative;display:inline-block;">
+          <img id="photoPreview" src="" alt="photo"
+            style="width:60px;height:60px;object-fit:cover;border-radius:10px;border:1.5px solid var(--gold);display:block;">
+          <button onclick="removePhoto()"
+            style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#ff4d6d;border:none;color:#fff;font-size:10px;cursor:pointer;display:grid;place-items:center;font-weight:900;">✕</button>
+        </div>
+      </div>
+
+      <!-- Compteur caractères -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0 2px;margin-bottom:5px;">
+        <span style="font-size:10px;color:var(--t3);">Décrivez votre vidéo</span>
+        <span id="charCount" style="font-size:11px;color:var(--t3);">0 / 500</span>
+      </div>
+
+      <div class="chat-bar" id="chatBar">
+        <button class="btn-icon" id="plusBtn" onclick="togglePlus()">
+          <span style="font-size:28px;font-weight:300;">+</span>
+        </button>
+        <input type="text" class="chat-input" id="chatInput"
+          placeholder="Décrivez votre vidéo…"
+          maxlength="600"
+          oninput="onChatInput(this)">
+        <button class="btn-icon" id="sendBtn" onclick="sendMsg()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--gold)"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ WHATSAPP ══ -->
+  <div id="v2" class="view">
+    <!-- BANNIÈRE PUB — remplacer par tag AdMob Banner -->
+    <div class="banner" style="border-left:3px solid var(--wa);margin-bottom:6px;">
+      <span style="font-size:18px;">💬</span>
+      <div style="font-size:11px;color:var(--t2);">Bannière Publicitaire — WhatsApp Business.</div>
+      <span class="banner-tag">PUB</span>
+    </div>
+
+
+
+    <div class="sim-body">
+      <div>
+        <div class="sec-lbl">Pays du numéro</div>
+        <div class="cntry-row">
+          <select class="cntry-sel" id="waCtry">
+            <option value="US">🇺🇸 États-Unis (+1)</option>
+            <option value="GB">🇬🇧 Royaume-Uni (+44)</option>
+            <option value="FR">🇫🇷 France (+33)</option>
+            <option value="DE">🇩🇪 Allemagne (+49)</option>
+            <option value="NG">🇳🇬 Nigeria (+234)</option>
+            <option value="GH">🇬🇭 Ghana (+233)</option>
+            <option value="SN">🇸🇳 Sénégal (+221)</option>
+            <option value="CI">🇨🇮 Côte d'Ivoire (+225)</option>
+          </select>
+          <button onclick="payAndGenNum('wa')" style="background:#128C7E;color:#fff;border:none;border-radius:12px;font-weight:700;font-size:13px;padding:12px 16px;cursor:pointer;white-space:nowrap;">Payer & Générer</button>
+        </div>
+      </div>
+
+      <div id="waNumCard" style="display:none;">
+        <div class="sec-lbl">Numéro généré</div>
+        <div class="num-card">
+          <span style="font-size:26px;" id="waFlag">🇺🇸</span>
+          <div><div class="num-val" id="waNum">—</div><div style="font-size:11px;color:var(--t2);margin-top:2px;" id="waCtryLbl">—</div></div>
+          <button class="num-copy" onclick="copyNum('wa')">Copier</button>
+        </div>
+      </div>
+
+      <div id="waSmsBox" style="display:none;">
+        <div class="sec-lbl">Code de confirmation</div>
+        <div class="sms-box">
+          <div class="sms-wait" id="waWait">
+            <div class="sms-pulse">📩</div>
+            <div style="font-weight:700;font-size:14px;">En attente du SMS…</div>
+            <div style="font-size:12px;color:var(--t2);line-height:1.6;">Entrez ce numéro dans WhatsApp.<br>Le code arrivera ici automatiquement.</div>
+            <button onclick="simSms('wa')" style="background:transparent;border:1px solid var(--line);color:var(--t2);border-radius:10px;padding:8px 14px;font-size:12px;cursor:pointer;margin-top:4px;">🧪 Simuler (test)</button>
+          </div>
+          <div class="sms-recv" id="waRecv">
+            <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);">✅ Code SMS reçu</div>
+            <div class="digits" id="waDigs"></div>
+            <div class="sms-full" id="waFull">—</div>
+            <button onclick="copyCode('wa')" style="background:#1a1a1a;border:1px solid var(--line);color:var(--t2);border-radius:8px;padding:8px 12px;font-size:11px;cursor:pointer;font-family:inherit;">📋 Copier le code</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ TELEGRAM ══ -->
+  <div id="v3" class="view">
+    <!-- BANNIÈRE PUB — remplacer par tag AdMob Banner -->
+    <div class="banner" style="border-left:3px solid var(--tg);margin-bottom:6px;">
+      <span style="font-size:18px;">✈️</span>
+      <div style="font-size:11px;color:var(--t2);">Bannière Publicitaire — Telegram Business.</div>
+      <span class="banner-tag">PUB</span>
+    </div>
+
+
+
+    <div class="sim-body">
+      <div>
+        <div class="sec-lbl">Pays du numéro</div>
+        <div class="cntry-row">
+          <select class="cntry-sel" id="tgCtry">
+            <option value="US">🇺🇸 États-Unis (+1)</option>
+            <option value="RU">🇷🇺 Russie (+7)</option>
+            <option value="GB">🇬🇧 Royaume-Uni (+44)</option>
+            <option value="FR">🇫🇷 France (+33)</option>
+            <option value="DE">🇩🇪 Allemagne (+49)</option>
+            <option value="BR">🇧🇷 Brésil (+55)</option>
+            <option value="IN">🇮🇳 Inde (+91)</option>
+            <option value="NG">🇳🇬 Nigeria (+234)</option>
+          </select>
+          <button onclick="payAndGenNum('tg')" style="background:#0288D1;color:#fff;border:none;border-radius:12px;font-weight:700;font-size:13px;padding:12px 16px;cursor:pointer;white-space:nowrap;">Payer & Générer</button>
+        </div>
+      </div>
+
+      <div id="tgNumCard" style="display:none;">
+        <div class="sec-lbl">Numéro généré</div>
+        <div class="num-card">
+          <span style="font-size:26px;" id="tgFlag">🇺🇸</span>
+          <div><div class="num-val" id="tgNum">—</div><div style="font-size:11px;color:var(--t2);margin-top:2px;" id="tgCtryLbl">—</div></div>
+          <button class="num-copy" onclick="copyNum('tg')">Copier</button>
+        </div>
+      </div>
+
+      <div id="tgSmsBox" style="display:none;">
+        <div class="sec-lbl">Code de confirmation</div>
+        <div class="sms-box">
+          <div class="sms-wait" id="tgWait">
+            <div class="sms-pulse">📩</div>
+            <div style="font-weight:700;font-size:14px;">En attente du code…</div>
+            <div style="font-size:12px;color:var(--t2);line-height:1.6;">Entrez ce numéro dans Telegram.<br>Le code arrivera automatiquement.</div>
+            <button onclick="simSms('tg')" style="background:transparent;border:1px solid var(--line);color:var(--t2);border-radius:10px;padding:8px 14px;font-size:12px;cursor:pointer;margin-top:4px;">🧪 Simuler (test)</button>
+          </div>
+          <div class="sms-recv" id="tgRecv">
+            <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);">✅ Code Telegram reçu</div>
+            <div class="digits" id="tgDigs"></div>
+            <div class="sms-full" id="tgFull">—</div>
+            <button onclick="copyCode('tg')" style="background:#1a1a1a;border:1px solid var(--line);color:var(--t2);border-radius:8px;padding:8px 12px;font-size:11px;cursor:pointer;font-family:inherit;">📋 Copier le code</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ ARCHIVES ══ -->
+  <div id="v4" class="view">
+    <div class="banner">
+      <span style="font-size:18px;">📜</span>
+      <div style="font-size:11px;color:var(--t2);">Consultez vos scripts générés.</div>
+    </div>
+    <div style="padding:15px;">
+      <div class="sec-lbl">Mes scripts</div>
+      <div id="archiveList">
+        <div style="text-align:center;padding:40px 20px;color:var(--t3);font-size:13px;">Aucune archive pour l'instant.</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ NAV ══ -->
+  <nav id="nav">
+    <button class="ni on" id="n0" onclick="go(0)"><div class="ni-icon">🏠</div><div class="ni-label">Accueil</div></button>
+    <button class="ni" id="n1" onclick="go(1)"><div class="ni-icon">🎬</div><div class="ni-label">Vidéo IA</div></button>
+    <button class="ni" id="n2" onclick="go(2)"><div class="ni-icon">💬</div><div class="ni-label">WhatsApp</div></button>
+    <button class="ni" id="n3" onclick="go(3)"><div class="ni-icon">✈️</div><div class="ni-label">Telegram</div></button>
+    <button class="ni" id="n4" onclick="go(4)"><div class="ni-icon">📜</div><div class="ni-label">Archives</div></button>
+  </nav>
+
+
+  <!-- ══ MODAL PROFIL ══ -->
+  <div class="overlay" id="pModal" onclick="if(event.target.id==='pModal')closeProfile()">
+    <div class="sheet">
+      <div class="sheet-bar"></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+        <div style="width:48px;height:48px;border-radius:14px;background:#1a1a1a;border:2px solid var(--gold);display:grid;place-items:center;font-size:20px;font-weight:800;color:var(--gold);" id="pAvLetter">U</div>
+        <div>
+          <div style="font-size:16px;font-weight:800;" id="pName">—</div>
+          <div style="font-size:11px;color:var(--t2);">Code : <span style="color:var(--gold);font-family:monospace;font-weight:700;" id="pCode">—</span></div>
+          <div id="pMachine" style="margin-top:5px;"></div>
+        </div>
+      </div>
+
+      <div style="height:1px;background:var(--line);margin-bottom:16px;"></div>
+
+      <div style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:12px;">PARRAINAGE</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);">
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--gold-dim);display:grid;place-items:center;font-size:16px;flex-shrink:0;">🤝</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;">Parrainer un ami</div>
+          <div style="font-size:11px;color:var(--t3);">Partagez votre code et gagnez des points</div>
+        </div>
+        <button onclick="shareCode()" style="background:var(--gold);color:#000;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">Partager</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 0;margin-bottom:14px;">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(0,214,143,.08);display:grid;place-items:center;font-size:16px;flex-shrink:0;">🎁</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;">Pack de bienvenue</div>
+          <div style="font-size:11px;color:var(--t3);">Reçu à l'achat de votre machine</div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--t2);">Offert</div>
+      </div>
+
+      <button onclick="closeProfile()" style="width:100%;padding:15px;background:var(--gold);color:#000;border:none;border-radius:15px;font-weight:800;cursor:pointer;">Fermer</button>
+    </div>
+  </div>
+
+  <!-- ══ MODAL ABONNEMENT ══ -->
+  <div class="overlay" id="subModal" onclick="if(event.target.id==='subModal')closeSub()">
+    <div class="sheet" style="max-height:85vh;overflow-y:auto;">
+      <div class="sheet-bar"></div>
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px;">⭐ Abonnements Premium</div>
+      <div style="font-size:12px;color:var(--t2);margin-bottom:18px;">Sans abonnement, parrainez 1 personne/jour pour débloquer vos points.</div>
+
+      <div class="sub-card" onclick="subscribe('week')">
+        <div class="sub-name">Abonnement Semaine</div>
+        <div class="sub-price">1 500 F</div>
+        <div class="sub-desc">7 jours sans parrainage obligatoire.</div>
+        <div class="sub-perks">
+          <div class="perk">300 points automatiques chaque matin à 00h00</div>
+          <div class="perk">Suppression du verrou de parrainage</div>
+          <div class="perk">3 vidéos / jour garanties</div>
+        </div>
+        <button class="sub-btn">Souscrire — 1 500 FCFA</button>
+      </div>
+
+      <div class="sub-card popular" onclick="subscribe('month')">
+        <div class="sub-popular-tag">⭐ POPULAIRE</div>
+        <div class="sub-name">Abonnement Mensuel</div>
+        <div class="sub-price">5 000 F</div>
+        <div class="sub-desc">30 jours — meilleure valeur.</div>
+        <div class="sub-perks">
+          <div class="perk">300 points automatiques chaque matin</div>
+          <div class="perk">Suppression du verrou de parrainage</div>
+          <div class="perk">3 vidéos / jour garanties</div>
+          <div class="perk">Accès prioritaire aux nouvelles fonctionnalités</div>
+        </div>
+        <button class="sub-btn">Souscrire — 5 000 FCFA</button>
+      </div>
+
+      <button onclick="closeSub()" style="width:100%;padding:13px;background:#1a1a1a;color:var(--t2);border:1px solid var(--line);border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;margin-top:4px;">Fermer</button>
+    </div>
+  </div>
+
+  <!-- ══ MODAL ABONNEMENT ══ -->
+  <div class="overlay" id="subModal" onclick="if(event.target.id==='subModal')closeSubs()">
+    <div class="sheet" style="max-height:88vh;overflow-y:auto;">
+      <div class="sheet-bar"></div>
+      <div style="font-size:17px;font-weight:800;margin-bottom:4px;">⭐ Abonnements Premium</div>
+      <div style="font-size:12px;color:var(--t2);margin-bottom:18px;line-height:1.6;">Sans abonnement, vous devez parrainer 1 personne par jour pour débloquer vos vidéos.</div>
+
+      <!-- Semaine -->
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;">
+        <div style="font-size:14px;font-weight:800;">Abonnement Semaine</div>
+        <div style="font-size:26px;font-weight:900;color:var(--gold);margin:6px 0;">1 500 FCFA</div>
+        <div style="font-size:12px;color:var(--t2);margin-bottom:12px;">7 jours d'accès complet sans parrainage obligatoire.</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+          <div style="font-size:12px;color:var(--t2);display:flex;align-items:center;gap:7px;"><span style="color:var(--green);font-weight:700;">✓</span> Points automatiques chaque matin à 00h00</div>
+          <div style="font-size:12px;color:var(--t2);display:flex;align-items:center;gap:7px;"><span style="color:var(--green);font-weight:700;">✓</span> Suppression du verrou de parrainage</div>
+          <div style="font-size:12px;color:var(--t2);display:flex;align-items:center;gap:7px;"><span style="color:var(--green);font-weight:700;">✓</span> Accès Studio Vidéo IA complet</div>
+        </div>
+        <button onclick="subscribe('week')" style="width:100%;padding:13px;background:var(--gold);color:#000;border:none;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;">Souscrire — 1 500 FCFA</button>
+      </div>
+
+      <!-- Mois -->
+      <div style="background:var(--card);border:2px solid var(--gold);border-radius:14px;padding:16px;position:relative;margin-bottom:16px;">
+        <div style="position:absolute;top:0;right:14px;background:var(--gold);color:#000;font-size:9px;font-weight:800;padding:3px 8px;border-radius:0 0 8px 8px;letter-spacing:1px;">⭐ POPULAIRE</div>
+        <div style="font-size:14px;font-weight:800;">Abonnement Mensuel</div>
+        <div style="font-size:26px;font-weight:900;color:var(--gold);margin:6px 0;">5 000 FCFA</div>
+        <div style="font-size:12px;color:var(--t2);margin-bottom:12px;">30 jours — économisez 1 000 FCFA vs 4 semaines.</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+          <div style="font-size:12px;color:var(--t2);display:flex;align-items:center;gap:7px;"><span style="color:var(--green);font-weight:700;">✓</span> Points automatiques chaque matin à 00h00</div>
+          <div style="font-size:12px;color:var(--t2);display:flex;align-items:center;gap:7px;"><span style="color:var(--green);font-weight:700;">✓</span> Suppression du verrou de parrainage</div>
+          <div style="font-size:12px;color:var(--t2);display:flex;align-items:center;gap:7px;"><span style="color:var(--green);font-weight:700;">✓</span> Badge Premium dans le profil</div>
+          <div style="font-size:12px;color:var(--t2);display:flex;align-items:center;gap:7px;"><span style="color:var(--green);font-weight:700;">✓</span> Accès prioritaire aux nouvelles fonctions</div>
+        </div>
+        <button onclick="subscribe('month')" style="width:100%;padding:13px;background:var(--gold);color:#000;border:none;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;">Souscrire — 5 000 FCFA</button>
+      </div>
+
+      <button onclick="closeSubs()" style="width:100%;padding:13px;background:transparent;color:var(--t2);border:1px solid var(--line);border-radius:12px;font-weight:600;font-size:13px;cursor:pointer;">Fermer</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+</div>
+</body>
+</html>
