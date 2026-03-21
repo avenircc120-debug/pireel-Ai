@@ -150,6 +150,83 @@
     /* TOAST */
     #toast { position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#fff; color:#000; padding:10px 20px; border-radius:20px; font-size:12px; font-weight:bold; display:none; z-index:4000; white-space:nowrap; max-width:calc(100vw - 32px); text-align:center; }
     #toast.show { display:block; }
+
+    /* ══ STUDIO VIDÉO IA — STYLES ══ */
+    .stu-body { flex:1; overflow-y:auto; padding:14px 14px 100px; display:flex; flex-direction:column; gap:12px; }
+    .stu-body::-webkit-scrollbar { display:none; }
+    .stu-card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; }
+    .stu-label { font-size:10px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--t3); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+    .stu-label::after { content:''; flex:1; height:1px; background:var(--line); }
+
+    /* Engine grid */
+    .stu-engine-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+    .stu-eng { background:#111; border:1.5px solid var(--line); border-radius:12px; padding:11px 6px; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; transition:all .15s; }
+    .stu-eng.on { border-color:var(--gold); background:var(--gold-dim); }
+    .stu-eng:active { transform:scale(.96); }
+    .stu-eng-ico { font-size:20px; }
+    .stu-eng-name { font-size:10px; font-weight:800; color:var(--t3); }
+    .stu-eng.on .stu-eng-name { color:var(--gold); }
+    .stu-eng-wide { grid-column:1/-1; flex-direction:row; justify-content:center; gap:10px; }
+
+    /* API Key */
+    .stu-api-row { display:flex; gap:8px; align-items:center; }
+    .stu-api-inp { flex:1; background:#111; border:1.5px solid var(--line); border-radius:12px; color:var(--t1); font-size:13px; padding:11px 13px; outline:none; font-family:monospace; transition:border-color .2s; }
+    .stu-api-inp:focus { border-color:rgba(255,207,0,.5); }
+    .stu-api-inp::placeholder { color:#2a2a2a; font-family:inherit; }
+    .stu-api-save { background:var(--gold); color:#000; border:none; border-radius:11px; padding:11px 14px; font-size:12px; font-weight:800; cursor:pointer; }
+    .stu-api-eye  { background:none; border:none; color:var(--t3); font-size:16px; cursor:pointer; padding:4px; flex-shrink:0; }
+    .stu-api-status { display:flex; align-items:center; gap:7px; margin-top:8px; font-size:11px; color:var(--t2); }
+    .stu-dot { width:7px; height:7px; border-radius:50%; background:#2a2a2a; flex-shrink:0; transition:all .3s; }
+    .stu-dot.ok   { background:var(--green); box-shadow:0 0 6px var(--green); }
+    .stu-dot.warn { background:var(--gold); }
+
+    /* Params */
+    .stu-params { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .stu-sel { width:100%; background:#111; border:1.5px solid var(--line); border-radius:10px; color:var(--t1); font-size:12px; padding:10px 11px; outline:none; appearance:none; font-family:inherit; }
+    .stu-sel:focus { border-color:rgba(255,207,0,.4); }
+    .stu-sel-full { grid-column:1/-1; }
+    .stu-param-label { font-size:11px; color:var(--t2); display:block; margin-bottom:5px; }
+
+    /* Prompt */
+    .stu-ta { width:100%; background:#111; border:1.5px solid var(--line); border-radius:13px; color:var(--t1); font-size:14px; padding:13px; outline:none; resize:none; font-family:inherit; line-height:1.6; min-height:100px; transition:border-color .2s; }
+    .stu-ta:focus { border-color:rgba(255,207,0,.4); }
+    .stu-ta::placeholder { color:#2a2a2a; }
+    .stu-chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+    .stu-chip { background:#111; border:1px solid var(--line); border-radius:20px; padding:5px 10px; font-size:11px; color:var(--t2); cursor:pointer; white-space:nowrap; }
+    .stu-chip:active { border-color:var(--gold); color:var(--gold); }
+
+    /* Gen button */
+    .stu-gen-btn { width:100%; padding:15px; background:var(--gold); color:#000; border:none; border-radius:15px; font-size:14px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px; transition:all .2s; }
+    .stu-gen-btn:disabled { opacity:.35; pointer-events:none; }
+    .stu-gen-btn:not(:disabled):active { transform:scale(.97); }
+
+    /* Progress */
+    .stu-prog { display:none; }
+    .stu-prog.show { display:block; }
+    .stu-track { background:#111; border:1px solid var(--line); border-radius:11px; padding:11px 13px; display:flex; align-items:center; gap:11px; margin-bottom:7px; }
+    .stu-track-num { width:28px; height:28px; border-radius:50%; background:var(--card); border:1.5px solid var(--line); display:grid; place-items:center; font-size:10px; font-weight:800; color:var(--t2); flex-shrink:0; }
+    .stu-track-num.done { border-color:var(--green); color:var(--green); }
+    .stu-track-num.live { border-color:var(--gold); color:var(--gold); animation:stuPulse 1.5s infinite; }
+    @keyframes stuPulse { 0%,100%{box-shadow:0 0 0 0 var(--gold-dim)} 50%{box-shadow:0 0 0 7px transparent} }
+    .stu-pbar { height:4px; background:#1a1a1a; border-radius:3px; overflow:hidden; margin-top:12px; }
+    .stu-pbar-fill { height:100%; background:linear-gradient(90deg,var(--gold),var(--green)); width:0%; transition:width .6s ease; border-radius:3px; }
+
+    /* Result */
+    .stu-result { display:none; }
+    .stu-result.show { display:block; }
+    .stu-video-box { background:#050505; border-radius:12px; min-height:160px; display:flex; align-items:center; justify-content:center; overflow:hidden; margin-bottom:12px; }
+    .stu-video-box video { width:100%; border-radius:12px; max-height:300px; }
+    .stu-clip-row { background:#0e0e0e; border-radius:10px; padding:10px 12px; display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+    .stu-clip-badge { width:25px; height:25px; border-radius:50%; background:var(--gold-dim); border:1px solid rgba(255,207,0,.25); display:grid; place-items:center; font-size:10px; font-weight:800; color:var(--gold); flex-shrink:0; }
+    .stu-dl-link { background:#1a1a1a; border:1px solid var(--line); border-radius:8px; color:var(--t2); font-size:11px; padding:5px 9px; cursor:pointer; font-family:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px; }
+    .stu-actions { display:flex; gap:8px; margin-top:12px; }
+    .stu-dl-main { flex:1; background:var(--gold); color:#000; border:none; border-radius:12px; padding:13px; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; }
+    .stu-new-btn { background:#111; border:1px solid var(--line); border-radius:12px; padding:13px 15px; font-size:13px; font-weight:700; cursor:pointer; color:var(--t1); font-family:inherit; }
+
+    /* Demo notice */
+    .stu-demo { background:rgba(255,207,0,.05); border:1px solid rgba(255,207,0,.12); border-radius:11px; padding:11px 13px; display:flex; gap:9px; align-items:flex-start; margin-top:10px; }
+    .stu-demo-txt { font-size:11px; color:var(--t2); line-height:1.6; }
+    .stu-demo-txt b { color:var(--gold); }
   </style>
 
   <script>
@@ -713,6 +790,303 @@
       }
     }
 
+    /* ══════════════════════════════════════
+       STUDIO VIDÉO IA — Fonctions
+    ══════════════════════════════════════ */
+    var STU = { engine:'kling', apiKey:'', generating:false };
+    var STU_ENGINES = { kling:'Kling', luma:'Luma', runway:'Runway', pika:'Pika', openai:'OpenAI Sora' };
+    var STU_ICONS   = { kling:'⚡', luma:'🌙', runway:'🛫', pika:'🔥', openai:'🤖' };
+
+    /* Init clé API sauvegardée */
+    (function stuInit() {
+      var saved = localStorage.getItem('pireel_api_key');
+      var savedEng = localStorage.getItem('pireel_engine');
+      if (saved) { STU.apiKey = saved; }
+      if (savedEng && STU_ENGINES[savedEng]) { STU.engine = savedEng; }
+      /* Appliqué après DOMContentLoaded */
+      document.addEventListener('DOMContentLoaded', function() {
+        if (saved) {
+          var inp = document.getElementById('stuApiInp');
+          if (inp) inp.value = saved;
+          stuUpdateStatus(true);
+        }
+        if (savedEng && STU_ENGINES[savedEng]) stuApplyEngine(savedEng);
+      });
+    })();
+
+    function stuSelectEngine(id, el) {
+      STU.engine = id;
+      document.querySelectorAll('.stu-eng').forEach(function(e) { e.classList.remove('on'); });
+      el.classList.add('on');
+      stuApplyEngine(id);
+      localStorage.setItem('pireel_engine', id);
+      toast_(STU_ICONS[id] + ' Moteur : ' + STU_ENGINES[id]);
+    }
+
+    function stuApplyEngine(id) {
+      STU.engine = id;
+      var badge = document.getElementById('stuBadge');
+      if (badge) badge.textContent = STU_ENGINES[id].toUpperCase();
+      document.querySelectorAll('.stu-eng').forEach(function(e) {
+        e.classList.toggle('on', e.dataset.engine === id);
+      });
+      stuUpdateStatus(!!STU.apiKey);
+    }
+
+    function stuOnApiInput() {
+      STU.apiKey = (document.getElementById('stuApiInp').value || '').trim();
+      stuUpdateStatus(!!STU.apiKey);
+      stuUpdateBtn();
+    }
+
+    function stuSaveKey() {
+      var val = (document.getElementById('stuApiInp').value || '').trim();
+      if (!val) {
+        STU.apiKey = '';
+        localStorage.removeItem('pireel_api_key');
+        stuUpdateStatus(false);
+        toast_('🔓 Clé supprimée — mode démo');
+      } else {
+        STU.apiKey = val;
+        localStorage.setItem('pireel_api_key', val);
+        stuUpdateStatus(true);
+        document.getElementById('stuDemoNotice').style.display = 'none';
+        toast_('✅ Clé API sauvegardée');
+      }
+      stuUpdateBtn();
+    }
+
+    function stuToggleVis() {
+      var inp = document.getElementById('stuApiInp');
+      var btn = document.getElementById('stuEyeBtn');
+      if (!inp) return;
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+      if (btn) btn.textContent = inp.type === 'password' ? '👁️' : '🙈';
+    }
+
+    function stuUpdateStatus(hasKey) {
+      var dot = document.getElementById('stuDot');
+      var txt = document.getElementById('stuDotTxt');
+      var notice = document.getElementById('stuDemoNotice');
+      if (!dot) return;
+      if (hasKey) {
+        dot.className = 'stu-dot ok';
+        if (txt) txt.textContent = 'Clé active — ' + STU_ENGINES[STU.engine] + ' prêt';
+        if (notice) notice.style.display = 'none';
+      } else {
+        dot.className = 'stu-dot warn';
+        if (txt) txt.textContent = 'Aucune clé — mode démo actif';
+        if (notice) notice.style.display = 'flex';
+      }
+    }
+
+    function stuOnPrompt(el) {
+      var len = el.value.length;
+      var cnt = document.getElementById('stuCharCnt');
+      if (cnt) { cnt.textContent = len + ' / 500'; cnt.style.color = len > 500 ? 'var(--red)' : 'var(--t3)'; }
+      stuUpdateBtn();
+    }
+
+    function stuAddChip(text) {
+      var ta = document.getElementById('stuPrompt');
+      if (!ta) return;
+      ta.value = ta.value.trim() ? ta.value.trim() + '. ' + text : text;
+      stuOnPrompt(ta);
+      ta.focus();
+    }
+
+    function stuUpdateBtn() {
+      var prompt = (document.getElementById('stuPrompt') ? document.getElementById('stuPrompt').value : '').trim();
+      var btn = document.getElementById('stuGenBtn');
+      var ico = document.getElementById('stuBtnIco');
+      var lbl = document.getElementById('stuBtnTxt');
+      if (!btn) return;
+      var ok = prompt.length > 0 && prompt.length <= 500;
+      btn.disabled = !ok || STU.generating;
+      if (!prompt) { ico.textContent='🎬'; lbl.textContent='Entrez votre description'; }
+      else if (prompt.length > 500) { ico.textContent='⛔'; lbl.textContent='Trop long (max 500)'; }
+      else if (!STU.apiKey) { ico.textContent='🎬'; lbl.textContent='Générer (mode démo)'; }
+      else { ico.textContent=STU_ICONS[STU.engine]; lbl.textContent='Générer avec ' + STU_ENGINES[STU.engine]; }
+    }
+
+    async function stuGenerate() {
+      if (STU.generating) return;
+      var prompt = document.getElementById('stuPrompt').value.trim();
+      if (!prompt || prompt.length > 500) return;
+
+      STU.generating = true;
+      document.getElementById('stuGenBtn').disabled = true;
+      document.getElementById('stuBtnIco').textContent = '⏳';
+      document.getElementById('stuBtnTxt').textContent = 'Génération en cours…';
+
+      var clipsCount = parseInt(document.getElementById('stuClips').value) || 3;
+      var duration   = parseInt(document.getElementById('stuDur').value) || 10;
+      var style      = document.getElementById('stuStyle').value;
+      var seed       = Math.floor(Math.random() * 999999) + 100000;
+
+      var words = prompt.split(' ');
+      var segSize = Math.ceil(words.length / clipsCount);
+      var segments = [];
+      for (var i = 0; i < clipsCount; i++) {
+        segments.push(words.slice(i * segSize, (i + 1) * segSize).join(' ') || words.slice(0, segSize).join(' '));
+      }
+
+      stuShowProgress(segments, seed);
+
+      try {
+        var r = await fetch('/api/studio-generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ seed, segments, prompt_suffix:style, api_key:STU.apiKey, engine:STU.engine, duration }),
+        });
+        var data = await r.json();
+        stuFinishProgress();
+        stuShowResult(data, seed, segments);
+      } catch(e) {
+        stuFinishProgress();
+        stuShowResult({ success:true, test_mode:true, clips:segments.map(function(s,i){ return {index:i+1,prompt:s,url:null}; }), video_url:null }, seed, segments);
+      }
+
+      STU.generating = false;
+      stuUpdateBtn();
+    }
+
+    function stuShowProgress(segments, seed) {
+      var prog = document.getElementById('stuProg');
+      var result = document.getElementById('stuResult');
+      if (prog) prog.classList.add('show');
+      if (result) result.classList.remove('show');
+
+      var eng = STU.engine;
+      var progEng = document.getElementById('stuProgEngine');
+      if (progEng) progEng.textContent = STU_ENGINES[eng].toUpperCase();
+
+      var tracks = document.getElementById('stuTracks');
+      if (tracks) {
+        tracks.innerHTML = segments.map(function(s, i) {
+          return '<div class="stu-track">'
+            + '<div class="stu-track-num' + (i===0?' live':'') + '" id="stn'+i+'">'+(i+1)+'</div>'
+            + '<div style="flex:1;min-width:0;">'
+            + '<div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Clip '+(i+1)+' — '+s.substring(0,42)+(s.length>42?'…':'')+'</div>'
+            + '<div style="font-size:10px;color:var(--t2);margin-top:2px;" id="sts'+i+'">'+(i===0?'En cours…':'En attente…')+'</div>'
+            + '</div>'
+            + '<div style="font-size:16px;" id="sti'+i+'">'+(i===0?'⏳':'○')+'</div>'
+            + '</div>';
+        }).join('');
+      }
+
+      var fill = document.getElementById('stuFill');
+      if (fill) fill.style.width = '5%';
+      var eta = document.getElementById('stuEta');
+      if (eta) eta.textContent = 'Connexion à ' + STU_ENGINES[eng] + '…';
+
+      var step = 0;
+      var totalSteps = segments.length * 4;
+      var etaMsgs = ['Envoi du prompt…','IA en cours…','Optimisation qualité…','Assemblage…'];
+      window._stuInterval = setInterval(function() {
+        step++;
+        var pct = Math.min(88, Math.round((step / totalSteps) * 88));
+        if (fill) fill.style.width = pct + '%';
+        var ci = Math.min(segments.length-1, Math.floor(step/4));
+        var ss = step % 4;
+        for (var j = 0; j < segments.length; j++) {
+          var n=document.getElementById('stn'+j), s2=document.getElementById('sts'+j), ic=document.getElementById('sti'+j);
+          if (!n) continue;
+          if (j < ci) { n.className='stu-track-num done'; ic.textContent='✅'; s2.textContent='Rendu terminé'; }
+          else if (j === ci) { n.className='stu-track-num live'; ic.textContent='⏳'; s2.textContent=etaMsgs[ss]||'Traitement…'; }
+          else { n.className='stu-track-num'; ic.textContent='○'; s2.textContent='En attente…'; }
+        }
+        if (eta) eta.textContent = etaMsgs[step % etaMsgs.length];
+        if (step >= totalSteps) clearInterval(window._stuInterval);
+      }, 3000);
+
+      /* Scroll vers progression */
+      var body = document.getElementById('stuBody');
+      if (body) setTimeout(function() { body.scrollTop = body.scrollHeight; }, 200);
+    }
+
+    function stuFinishProgress() {
+      clearInterval(window._stuInterval);
+      var fill = document.getElementById('stuFill');
+      var eta  = document.getElementById('stuEta');
+      if (fill) fill.style.width = '100%';
+      if (eta)  eta.textContent = '✅ Génération terminée !';
+      document.querySelectorAll('.stu-track-num').forEach(function(n) { n.className='stu-track-num done'; });
+      document.querySelectorAll('[id^="sti"]').forEach(function(i) { i.textContent='✅'; });
+      document.querySelectorAll('[id^="sts"]').forEach(function(s) { s.textContent='Clip rendu'; });
+    }
+
+    function stuShowResult(data, seed, segments) {
+      var sec = document.getElementById('stuResult');
+      if (sec) sec.classList.add('show');
+
+      var isTest = data.test_mode || !data.video_url;
+
+      var badge = document.getElementById('stuResultBadge');
+      if (badge) badge.innerHTML = '<span style="color:'+(isTest?'var(--gold)':'var(--green)')+'">●</span><span>'+(isTest?'Mode démo':'Généré — '+STU_ENGINES[STU.engine])+'</span>';
+
+      var seedTag = document.getElementById('stuSeedTag');
+      if (seedTag) seedTag.textContent = 'SEED #' + seed;
+
+      var vbox = document.getElementById('stuVideoBox');
+      if (vbox) {
+        if (data.video_url) {
+          vbox.innerHTML = '<video controls autoplay muted loop playsinline src="'+data.video_url+'" style="width:100%;border-radius:12px;max-height:280px;"></video>';
+        } else {
+          vbox.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--t2);font-size:12px;padding:30px;text-align:center;">'
+            +'<div style="font-size:40px;">🎞️</div>'
+            +'<div style="font-weight:700;">'+(isTest?'Mode démo':'Clips générés')+'</div>'
+            +(isTest?'<div style="color:var(--t3);font-size:11px;">Ajoutez votre clé API pour générer de vraies vidéos</div>':'')
+            +'</div>';
+        }
+      }
+
+      var clips = data.clips || segments.map(function(s,i){ return {index:i+1,prompt:s,url:null}; });
+      var dur = document.getElementById('stuDur') ? document.getElementById('stuDur').value : 10;
+      var list = document.getElementById('stuClipsList');
+      if (list) {
+        list.innerHTML = clips.map(function(c) {
+          return '<div class="stu-clip-row">'
+            +'<div class="stu-clip-badge">'+c.index+'</div>'
+            +'<div style="flex:1;min-width:0;">'
+            +'<div style="font-size:12px;font-weight:600;">Clip '+c.index+' · '+dur+'s</div>'
+            +'<div style="font-size:10px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">'+(c.prompt||segments[c.index-1]||'').substring(0,50)+'</div>'
+            +'</div>'
+            +(c.url?'<a href="'+c.url+'" download class="stu-dl-link">⬇</a>':'<span style="font-size:11px;color:var(--t3);">'+(isTest?'Démo':'✅')+'</span>')
+            +'</div>';
+        }).join('');
+      }
+
+      var dlBtn = document.getElementById('stuDlMain');
+      if (dlBtn) {
+        if (data.video_url) { dlBtn.style.display='flex'; dlBtn.href=data.video_url; dlBtn.download='pireel_'+seed+'.mp4'; }
+        else { dlBtn.style.display='none'; }
+      }
+
+      var body = document.getElementById('stuBody');
+      if (body) setTimeout(function() { body.scrollTop = body.scrollHeight; }, 200);
+      toast_(isTest ? '🎬 Mode démo — ajoutez une clé API !' : '✅ Vidéo générée avec ' + STU_ENGINES[STU.engine]);
+
+      /* Sauvegarder dans archives */
+      var arch = { txt: segments.join(' ').substring(0,80), seed, engine:STU.engine, date: new Date().toISOString(), isTest };
+      S.archives = S.archives || [];
+      S.archives.unshift(arch);
+      S.archives = S.archives.slice(0, 20);
+    }
+
+    function stuReset() {
+      document.getElementById('stuPrompt').value = '';
+      document.getElementById('stuCharCnt').textContent = '0 / 500';
+      document.getElementById('stuProg').classList.remove('show');
+      document.getElementById('stuResult').classList.remove('show');
+      document.getElementById('stuBtnIco').textContent = '🎬';
+      document.getElementById('stuBtnTxt').textContent = 'Entrez votre description';
+      document.getElementById('stuGenBtn').disabled = true;
+      STU.generating = false;
+      var body = document.getElementById('stuBody');
+      if (body) body.scrollTop = 0;
+    }
+
     /* ── INIT ── */
     document.addEventListener('DOMContentLoaded', function() {
       loadUser();
@@ -767,79 +1141,157 @@
   </div>
 
 
-  <!-- ══ VIDÉO IA ══ -->
-  <div id="v1" class="view" style="overflow:hidden;">
-    <!-- BANNIÈRE PUB — remplacer par tag AdMob Banner -->
-    <div class="banner">
-      <span style="font-size:18px;">✨</span>
-      <div style="flex:1;font-size:11px;color:var(--t2);">Bannière Publicitaire — Boostez vos vidéos ici.</div>
-      <span class="banner-tag">PUB</span>
-    </div>
+  <!-- ══ VIDÉO IA — STUDIO PROFESSIONNEL ══ -->
+  <div id="v1" class="view" style="flex-direction:column;overflow:hidden;">
 
-    <div style="display:flex;justify-content:flex-end;padding:4px 15px 2px;flex-shrink:0;">
-      <div class="w-chip" onclick="openWallet()">⚡ <span id="chatPts">0</span> pts</div>
-    </div>
-
-    <div class="chat-msgs" id="msgs">
-      <div class="chat-empty" id="chatEmpty">
-        <div class="chat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        </div>
-        <div style="font-size:22px;font-weight:600;margin-bottom:10px;">Discussion Vidéo IA</div>
-        <div style="font-size:13px;color:#777;max-width:85%;line-height:1.7;">
-          Décrivez votre scène en <strong style="color:var(--gold);">500 caractères max</strong>.<br>
-          Je génère <strong style="color:var(--gold);">3 clips de 10s</strong> avec le même SEED et les fusionne en une vidéo fluide de 30s.
-        </div>
+    <!-- Topbar studio -->
+    <div class="topbar">
+      <div class="tb-logo">🎬</div>
+      <div style="flex:1;padding-left:10px;">
+        <div style="font-size:14px;font-weight:800;">Studio Vidéo IA</div>
+        <div style="font-size:10px;color:var(--t2);">Génération professionnelle</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="w-chip" onclick="openWallet()">⚡ <span id="chatPts">0</span> pts</div>
+        <div style="background:var(--gold-dim);border:1px solid rgba(255,207,0,.25);border-radius:20px;padding:4px 10px;font-size:10px;font-weight:800;color:var(--gold);" id="stuBadge">KLING</div>
       </div>
     </div>
 
-    <div class="chat-input-zone">
-      <!-- Plus menu -->
-      <div class="plus-menu" id="plusMenu">
-        <div class="pm-opt" onclick="openSubModal()">
-          <div class="pm-ico">⭐</div>
-          <div class="pm-lbl">Abonnement</div>
-        </div>
-        <div class="pm-opt" onclick="choosePhoto()">
-          <div class="pm-ico">🖼️</div>
-          <div class="pm-lbl">Choisir une photo</div>
-        </div>
-        <div class="pm-opt" onclick="shareCode()">
-          <div class="pm-ico">🤝</div>
-          <div class="pm-lbl">Parrainer</div>
-        </div>
-      </div>
-      <input type="file" id="fileIn" accept="image/*" hidden onchange="onPhotoChosen(this)">
+    <!-- Corps scrollable -->
+    <div class="stu-body" id="stuBody">
 
-      <!-- Aperçu photo choisie (apparaît au-dessus de la barre) -->
-      <div id="photoPreviewWrap" style="display:none;padding:6px 2px 4px;position:relative;">
-        <div style="position:relative;display:inline-block;">
-          <img id="photoPreview" src="" alt="photo"
-            style="width:60px;height:60px;object-fit:cover;border-radius:10px;border:1.5px solid var(--gold);display:block;">
-          <button onclick="removePhoto()"
-            style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#ff4d6d;border:none;color:#fff;font-size:10px;cursor:pointer;display:grid;place-items:center;font-weight:900;">✕</button>
+      <!-- MOTEUR IA -->
+      <div class="stu-card">
+        <div class="stu-label">Moteur IA</div>
+        <div class="stu-engine-grid">
+          <div class="stu-eng on" onclick="stuSelectEngine('kling',this)" data-engine="kling">
+            <div class="stu-eng-ico">⚡</div><div class="stu-eng-name">Kling</div>
+          </div>
+          <div class="stu-eng" onclick="stuSelectEngine('luma',this)" data-engine="luma">
+            <div class="stu-eng-ico">🌙</div><div class="stu-eng-name">Luma</div>
+          </div>
+          <div class="stu-eng" onclick="stuSelectEngine('runway',this)" data-engine="runway">
+            <div class="stu-eng-ico">🛫</div><div class="stu-eng-name">Runway</div>
+          </div>
+          <div class="stu-eng" onclick="stuSelectEngine('pika',this)" data-engine="pika">
+            <div class="stu-eng-ico">🔥</div><div class="stu-eng-name">Pika</div>
+          </div>
+          <div class="stu-eng stu-eng-wide" onclick="stuSelectEngine('openai',this)" data-engine="openai">
+            <div class="stu-eng-ico">🤖</div>
+            <div><div class="stu-eng-name" style="font-size:11px;">OpenAI · Sora</div></div>
+          </div>
         </div>
       </div>
 
-      <!-- Compteur caractères -->
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:0 2px;margin-bottom:5px;">
-        <span style="font-size:10px;color:var(--t3);">Décrivez votre vidéo</span>
-        <span id="charCount" style="font-size:11px;color:var(--t3);">0 / 500</span>
+      <!-- CLÉ API -->
+      <div class="stu-card">
+        <div class="stu-label">Clé API Universelle</div>
+        <div class="stu-api-row">
+          <input type="password" class="stu-api-inp" id="stuApiInp"
+                 placeholder="sk-… ou votre clé API"
+                 oninput="stuOnApiInput()" autocomplete="off" spellcheck="false"/>
+          <button class="stu-api-eye" onclick="stuToggleVis()" id="stuEyeBtn">👁️</button>
+          <button class="stu-api-save" onclick="stuSaveKey()">OK</button>
+        </div>
+        <div class="stu-api-status">
+          <div class="stu-dot" id="stuDot"></div>
+          <span id="stuDotTxt">Aucune clé — mode démo actif</span>
+        </div>
+        <div class="stu-demo" id="stuDemoNotice">
+          <span style="font-size:15px;flex-shrink:0;">💡</span>
+          <div class="stu-demo-txt">Clé stockée <b>localement</b> dans votre navigateur. Jamais sauvegardée sur nos serveurs.</div>
+        </div>
       </div>
 
-      <div class="chat-bar" id="chatBar">
-        <button class="btn-icon" id="plusBtn" onclick="togglePlus()">
-          <span style="font-size:28px;font-weight:300;">+</span>
-        </button>
-        <input type="text" class="chat-input" id="chatInput"
-          placeholder="Décrivez votre vidéo…"
-          maxlength="600"
-          oninput="onChatInput(this)">
-        <button class="btn-icon" id="sendBtn" onclick="sendMsg()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--gold)"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-        </button>
+      <!-- PARAMÈTRES -->
+      <div class="stu-card">
+        <div class="stu-label">Paramètres</div>
+        <div class="stu-params">
+          <div><label class="stu-param-label">Clips</label>
+            <select class="stu-sel" id="stuClips">
+              <option value="1">1 clip · 10s</option>
+              <option value="2">2 clips · 20s</option>
+              <option value="3" selected>3 clips · 30s</option>
+            </select>
+          </div>
+          <div><label class="stu-param-label">Durée / clip</label>
+            <select class="stu-sel" id="stuDur">
+              <option value="5">5 secondes</option>
+              <option value="10" selected>10 secondes</option>
+            </select>
+          </div>
+          <div class="stu-sel-full"><label class="stu-param-label">Style cinématique</label>
+            <select class="stu-sel" id="stuStyle">
+              <option value=", Cinematic 4K, realistic, slow zoom-in">Cinematic 4K — Zoom lent</option>
+              <option value=", Aerial drone shot, 4K, golden hour">Drone aérien — Golden Hour</option>
+              <option value=", Dark moody, neon lights, cinematic">Dark Moody — Néon</option>
+              <option value=", Slow motion, 4K, ultra realistic">Slow Motion Ultra HD</option>
+              <option value=", Anime style, vibrant colors, dynamic">Style Animé</option>
+              <option value="">Aucun (prompt brut)</option>
+            </select>
+          </div>
+        </div>
       </div>
-    </div>
+
+      <!-- PROMPT -->
+      <div class="stu-card">
+        <div class="stu-label">Description de la vidéo</div>
+        <textarea class="stu-ta" id="stuPrompt" rows="4"
+          placeholder="Ex : Une femme marche au coucher de soleil sur une plage tropicale, vagues douces, lumière dorée…"
+          oninput="stuOnPrompt(this)"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px;padding:0 2px;">
+          <span style="font-size:10px;color:var(--t3);">Max 500 caractères</span>
+          <span id="stuCharCnt" style="font-size:11px;color:var(--t3);">0 / 500</span>
+        </div>
+        <div class="stu-chips">
+          <div class="stu-chip" onclick="stuAddChip('Coucher de soleil sur la plage')">🌅 Plage</div>
+          <div class="stu-chip" onclick="stuAddChip('Ville nocturne néons')">🌃 Nuit</div>
+          <div class="stu-chip" onclick="stuAddChip('Forêt mystique avec brume')">🌲 Forêt</div>
+          <div class="stu-chip" onclick="stuAddChip('Galaxie, étoiles filantes, espace')">🌌 Espace</div>
+          <div class="stu-chip" onclick="stuAddChip('Voiture sport sur autoroute')">🚗 Sport</div>
+        </div>
+      </div>
+
+      <!-- BOUTON GÉNÉRER -->
+      <button class="stu-gen-btn" id="stuGenBtn" onclick="stuGenerate()" disabled>
+        <span id="stuBtnIco">🎬</span>
+        <span id="stuBtnTxt">Entrez votre description</span>
+      </button>
+
+      <!-- PROGRESSION -->
+      <div class="stu-card stu-prog" id="stuProg">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-size:13px;font-weight:700;">Génération en cours…</div>
+          <div style="background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.2);border-radius:20px;padding:3px 10px;font-size:10px;color:#4f8ef7;font-weight:700;" id="stuProgEngine">KLING</div>
+        </div>
+        <div id="stuTracks"></div>
+        <div class="stu-pbar"><div class="stu-pbar-fill" id="stuFill"></div></div>
+        <div style="font-size:11px;color:var(--t2);margin-top:6px;text-align:right;" id="stuEta">Initialisation…</div>
+      </div>
+
+      <!-- RÉSULTAT -->
+      <div class="stu-card stu-result" id="stuResult">
+        <div class="stu-label">Vidéo générée</div>
+        <div class="stu-video-box" id="stuVideoBox">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--t2);font-size:12px;padding:30px;">
+            <div style="font-size:40px;">🎞️</div>
+            <div>Votre vidéo apparaîtra ici</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;" id="stuResultBadge">
+            <span style="color:var(--green);">●</span><span>Prêt</span>
+          </div>
+          <div style="background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.2);border-radius:20px;padding:3px 10px;font-size:10px;color:#4f8ef7;font-weight:600;" id="stuSeedTag">SEED #——</div>
+        </div>
+        <div id="stuClipsList"></div>
+        <div class="stu-actions">
+          <a href="#" class="stu-dl-main" id="stuDlMain" style="display:none;">⬇ Télécharger</a>
+          <button class="stu-new-btn" onclick="stuReset()">✦ Nouveau</button>
+        </div>
+      </div>
+
+    </div><!-- /stu-body -->
   </div>
 
 
