@@ -1,3 +1,4 @@
+SHA:859296abe0878f8bd9d51a29ca2007243f29c6c7
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -411,31 +412,82 @@
     }
 
     /* ── AFFICHER RÉSULTAT GÉNÉRATION ── */
-    function showGenResult(seed, segs, videoUrl, isTest) {
-      var card = '<div style="background:#050f0a;border:1px solid rgba(0,214,143,.2);border-radius:14px;padding:14px;width:100%;">'
-        + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
-        + '<span style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#00d68f;">✅ ' + (isTest ? 'Simulation' : 'Vidéo générée') + '</span>'
-        + '<span style="background:rgba(41,182,246,.1);border:1px solid rgba(41,182,246,.2);border-radius:20px;padding:3px 8px;font-size:10px;color:#29B6F6;font-weight:600;">🔑 SEED #' + seed + '</span>'
+    /* ── AFFICHER RÉSULTAT GÉNÉRATION ── */
+    var _cfPlayers = {};
+
+    function showGenResult(seed, segs, videoUrls, isTest) {
+      var hasVideo = Array.isArray(videoUrls) && videoUrls.length > 0;
+      var pid = 'cf_' + seed;
+
+      var clipsHtml = segs.map(function(s, i) {
+        var done = hasVideo && i < videoUrls.length;
+        return '<div style="background:#111;border-radius:9px;padding:8px 11px;margin-bottom:5px;display:flex;align-items:center;gap:9px;">'
+          + '<div style="width:22px;height:22px;border-radius:50%;background:rgba(255,207,0,.1);border:1px solid rgba(255,207,0,.2);display:grid;place-items:center;font-size:9px;font-weight:800;color:#ffcf00;flex-shrink:0;">' + (i+1) + '</div>'
+          + '<div style="flex:1;font-size:11px;color:#777;">Clip ' + (i+1) + ' · 10s — ' + s.substring(0,38) + (s.length>38?'…':'') + '</div>'
+          + '<div style="font-size:13px;">' + (done ? '✅' : '⏳') + '</div>'
+          + '</div>';
+      }).join('');
+
+      var playerHtml = '';
+      if (hasVideo) {
+        playerHtml = '<div id="' + pid + '" style="position:relative;background:#000;border-radius:12px;overflow:hidden;margin-bottom:10px;aspect-ratio:9/16;max-height:300px;">'
+          + '<video id="' + pid + '_v1" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .5s;" playsinline muted></video>'
+          + '<video id="' + pid + '_v2" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .5s;opacity:0;" playsinline muted></video>'
+          + '<div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent,rgba(0,0,0,.85));display:flex;align-items:center;justify-content:space-between;">'
+          + '<button onclick="cfToggle('' + pid + '')" id="' + pid + '_btn" style="background:rgba(255,207,0,.9);color:#000;border:none;border-radius:50%;width:36px;height:36px;font-size:15px;cursor:pointer;">▶</button>'
+          + '<span id="' + pid + '_time" style="font-size:10px;color:#ccc;font-weight:600;">0:00 / 0:30</span>'
+          + '<a href="' + videoUrls[0] + '" download style="background:rgba(255,207,0,.15);color:#ffcf00;border:1px solid rgba(255,207,0,.3);border-radius:20px;padding:5px 10px;font-size:10px;font-weight:700;text-decoration:none;">⬇ Télécharger</a>'
+          + '</div></div>';
+      }
+
+      var card = '<div style="background:#050f0a;border:1px solid rgba(0,214,143,.2);border-radius:14px;padding:13px;width:100%;">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
+        + '<span style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#00d68f;">✅ ' + (isTest ? 'Simulation' : hasVideo ? videoUrls.length + ' clips prêts' : 'Vidéo générée') + '</span>'
+        + '<span style="background:rgba(41,182,246,.08);border:1px solid rgba(41,182,246,.2);border-radius:20px;padding:2px 7px;font-size:10px;color:#29B6F6;font-weight:600;">🔑 #' + seed + '</span>'
         + '</div>'
-        + segs.map(function(s, i) {
-            return '<div style="background:#1a1a1a;border-radius:10px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;">'
-              + '<div style="width:24px;height:24px;border-radius:50%;background:rgba(255,207,0,.1);border:1px solid rgba(255,207,0,.2);display:grid;place-items:center;font-size:10px;font-weight:800;color:#ffcf00;flex-shrink:0;">' + (i+1) + '</div>'
-              + '<div style="flex:1;font-size:11px;color:#888;">Clip ' + (i+1) + ' · 10s — ' + s.substring(0,40) + (s.length>40?'…':'') + '</div>'
-              + '<div style="font-size:14px;">✅</div>'
-              + '</div>';
-          }).join('')
-        + '<div style="background:#0a0a0a;border-radius:10px;padding:10px 12px;margin-top:4px;display:flex;align-items:center;gap:10px;">'
-        + '<div style="font-size:18px;">🎞️</div>'
-        + '<div style="flex:1;font-size:11px;"><span style="color:#00d68f;font-weight:700;">Vidéo 30s</span> · Cross-fade 0.5s · Cinematic 4K'
-        + (isTest ? '<br><span style="color:#444;font-size:10px;">Mode test — ajoutez une clé API pour la vraie génération</span>' : '') + '</div>'
-        + (videoUrl
-            ? '<a href="' + videoUrl + '" download><button style="background:#ffcf00;color:#000;border:none;border-radius:8px;padding:7px 11px;font-size:11px;font-weight:800;cursor:pointer;">⬇</button></a>'
-            : '<button onclick="toast_(\'🔗 Clé API requise\')" style="background:#1a1a1a;border:1px solid #333;color:#666;border-radius:8px;padding:7px 11px;font-size:11px;cursor:pointer;">▶ Test</button>')
-        + '</div></div>';
+        + playerHtml + clipsHtml
+        + '<div style="background:#0d1a0f;border-radius:9px;padding:9px 11px;margin-top:6px;display:flex;align-items:center;gap:9px;">'
+        + '<span style="font-size:16px;">🎞️</span>'
+        + '<span style="flex:1;font-size:11px;color:#00d68f;font-weight:600;">Vidéo 30s · Cross-fade 0.5s · 4K</span>'
+        + (!hasVideo ? '<button onclick="toast_('Mode test actif')" style="background:#1a1a1a;border:1px solid #333;color:#666;border-radius:8px;padding:6px 10px;font-size:10px;cursor:pointer;">▶ Test</button>' : '')
+        + '</div>'
+        + (isTest ? '<div style="margin-top:8px;padding:7px;background:#1a0a0a;border-radius:8px;font-size:10px;color:#555;text-align:center;">Mode test — connectez une vraie clé API pour la génération réelle</div>' : '')
+        + '</div>';
 
       addMsg(card, 'ai', true);
-      toast_('🎬 Vidéo générée ! -' + COST_VIDEO + ' pts');
+      toast_('🎬 Vidéo prête ! -' + COST_VIDEO + ' pts');
+      if (hasVideo) setTimeout(function() { initCFPlayer(pid, videoUrls); }, 400);
     }
+
+    /* ── LECTEUR CROSS-FADE 3 CLIPS ── */
+    function initCFPlayer(pid, urls) {
+      var v1 = document.getElementById(pid + '_v1');
+      var v2 = document.getElementById(pid + '_v2');
+      if (!v1 || !v2) return;
+      var clipIdx = 0, playing = false, active = v1, standby = v2, startT = 0;
+      var totalDur = urls.length * 10;
+      function fmt(s) { s=Math.floor(s); return Math.floor(s/60)+':'+(('0'+(s%60)).slice(-2)); }
+      function loadStandby(i) { if (i < urls.length) { standby.src = urls[i]; standby.load(); } }
+      function crossFade(nextIdx) {
+        standby.style.opacity='1'; active.style.opacity='0';
+        setTimeout(function() { active.pause(); active.src=''; var t=active; active=standby; standby=t; clipIdx=nextIdx; loadStandby(clipIdx+1); }, 500);
+      }
+      function onEnded() {
+        var nxt = clipIdx + 1;
+        if (nxt < urls.length) { standby.play().catch(function(){}); crossFade(nxt); }
+        else { playing=false; var b=document.getElementById(pid+'_btn'); if(b) b.textContent='▶'; }
+      }
+      v1.addEventListener('ended', onEnded);
+      v2.addEventListener('ended', onEnded);
+      v1.src = urls[0]; v1.load(); loadStandby(1);
+      setInterval(function() {
+        if (!playing) return;
+        var el = document.getElementById(pid+'_time');
+        if (el) el.textContent = fmt((Date.now()-startT)/1000) + ' / ' + fmt(totalDur);
+      }, 500);
+      _cfPlayers[pid] = { start: function() { v1.play().catch(function(){}); playing=true; startT=Date.now(); var b=document.getElementById(pid+'_btn'); if(b) b.textContent='⏸'; } };
+    }
+    function cfToggle(pid) { var p=_cfPlayers[pid]; if(p) p.start(); }
 
     /* ── PHOTO ── */
     var S_photo = null; // stocke la photo base64
@@ -542,15 +594,22 @@
       wrap.scrollTop = wrap.scrollHeight;
 
       /* Messages qui tournent toutes les 3 secondes */
-      var msgs = [
-        'Votre vidéo est en cours de création…',
-        'Nous préparons votre contenu, un instant…',
-        'Votre vidéo sera prête dans quelques secondes…',
-        'Génération en cours, merci de patienter…',
-        'Presque terminé, encore un moment…',
-        'Votre vidéo arrive bientôt…',
-        'Finalisation en cours…',
-      ];
+        var msgs = [
+          '🎬 Votre vidéo est en cours de création…',
+          '🧠 L\'IA analyse votre description…',
+          '🎞️ Génération du clip 1/3…',
+          '⚡ Génération du clip 2/3…',
+          '✨ Génération du clip 3/3…',
+          '🔗 Fusion cross-fade 0.5s en cours…',
+          '🎨 Optimisation qualité 4K…',
+          '📡 Transfert sécurisé…',
+          '⏳ Presque terminé, encore quelques secondes…',
+          '🚀 Votre vidéo 30s arrive bientôt…',
+          '🔄 Finalisation de la vidéo…',
+          '💫 Dernière étape, merci de patienter…',
+          '✅ Votre contenu est presque prêt…',
+          '🎯 Votre vidéo va apparaître dans un instant…',
+        ];
       var i = 0;
       d._interval = setInterval(function() {
         var el = document.getElementById('typingMsg');
@@ -619,7 +678,8 @@
         rmTyping();
         S.pts -= COST_VIDEO;
         render();
-        showGenResult(SEED, segs, d.video_url, d.test_mode);
+        var urls = d.video_urls || (d.video_url ? [d.video_url] : null);
+        showGenResult(SEED, segs, urls, d.test_mode);
       } catch(e) {
         rmTyping();
         S.pts -= COST_VIDEO;
@@ -737,8 +797,15 @@
       {e:'🛒', t:'Boutique Cotonou',  s:"Soldes — jusqu'à -50%"},
       {e:'🌾', t:'AgriFormation BJ',  s:'Formation agriculture bio'},
       {e:'💻', t:'Tech Africa',       s:'Apprenez le code en 3 mois'},
-      {e:'💊', t:'Pharmacie Express', s:'Livraison à domicile'},
+      {e:'💊', t:'Pharmacie Express', s:'Livraison à domicile - 24h'},
       {e:'🏗️', t:'BTP Solutions',    s:'Matériaux — meilleurs prix'},
+      {e:'🎓', t:'PIREEL Academy',    s:'Formez-vous au marketing digital'},
+      {e:'📱', t:'Mobile Business',   s:'Créez votre boutique en 5 min'},
+      {e:'🍽️', t:'FoodExpress BJ',   s:'Commandez, livré en 30 min'},
+      {e:'✈️', t:'Voyage Malin',     s:'Billets pas chers partout en Afrique'},
+      {e:'🌿', t:'Bio Bénin',        s:'Produits 100% naturels et locaux'},
+      {e:'💰', t:'MicroFinance+',    s:'Crédit rapide sans garantie'},
+      {e:'🎵', t:'BeatMaker Pro',    s:'Produisez votre musique en ligne'},
     ];
     var adIdx = 0;
     function startAdRotation() {
