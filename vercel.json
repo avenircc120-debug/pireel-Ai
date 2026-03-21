@@ -5,8 +5,12 @@
   "functions": {
     "api/studio-generate.js": { "maxDuration": 300 },
     "api/generate.js":        { "maxDuration": 60  },
-    "api/me.js":              { "maxDuration": 10  }
+    "api/me.js":              { "maxDuration": 10  },
+    "api/daily-reset.js":     { "maxDuration": 60  }
   },
+  "crons": [
+    { "path": "/api/daily-reset", "schedule": "0 0 * * *" }
+  ],
   "rewrites": [
     { "source": "/studio",   "destination": "/studio_video.html" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
@@ -16,7 +20,7 @@
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin",   "value": "https://pireel.com" },
+        { "key": "Access-Control-Allow-Origin",   "value": "*" },
         { "key": "Access-Control-Allow-Methods",  "value": "POST, OPTIONS" },
         { "key": "Access-Control-Allow-Headers",  "value": "Content-Type, Authorization" },
         { "key": "X-Content-Type-Options",        "value": "nosniff" },
