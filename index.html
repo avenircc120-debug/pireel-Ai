@@ -3,7 +3,7 @@ SHA:859296abe0878f8bd9d51a29ca2007243f29c6c7
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>PIREEL - Business & IA</title>
   <style>
     :root {
@@ -13,10 +13,10 @@ SHA:859296abe0878f8bd9d51a29ca2007243f29c6c7
     }
     * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
     body { background:var(--bg); color:var(--t1); font-family:-apple-system,sans-serif; overflow:hidden; }
-    #app { max-width:480px; margin:0 auto; height:100vh; display:flex; flex-direction:column; position:relative; overflow:hidden; }
+    #app { max-width:480px; margin:0 auto; height:100vh; height:100dvh; display:flex; flex-direction:column; position:relative; overflow:hidden; }
 
     /* VIEWS */
-    .view { display:none; flex:1; flex-direction:column; overflow-y:auto; padding-bottom:calc(95px + env(safe-area-inset-bottom, 0px)); }
+    .view { display:none; flex:1; flex-direction:column; overflow-y:auto; padding-bottom:calc(90px + env(safe-area-inset-bottom, 16px)); }
     .view::-webkit-scrollbar { display:none; }
     .view.active { display:flex; }
 
@@ -103,7 +103,7 @@ SHA:859296abe0878f8bd9d51a29ca2007243f29c6c7
     .arc-item:active { border-color:var(--gold); }
 
     /* NAV */
-    #nav { position:absolute; bottom:0; left:0; right:0; height:calc(75px + env(safe-area-inset-bottom, 0px)); background:#000; border-top:1px solid var(--line); display:grid; grid-template-columns:repeat(5,1fr); z-index:1000; padding-bottom:env(safe-area-inset-bottom, 0px); }
+    #nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; height:calc(68px + env(safe-area-inset-bottom, 16px)); background:#000; border-top:1px solid var(--line); display:grid; grid-template-columns:repeat(5,1fr); z-index:9999; padding-bottom:env(safe-area-inset-bottom, 16px); box-sizing:border-box; }
     .ni { border:none; background:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:#444; cursor:pointer; }
     .ni.on { color:var(--gold); }
     .ni-icon { font-size:20px; }
