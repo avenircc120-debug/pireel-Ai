@@ -16,7 +16,7 @@ SHA:859296abe0878f8bd9d51a29ca2007243f29c6c7
     #app { max-width:480px; margin:0 auto; height:100vh; display:flex; flex-direction:column; position:relative; overflow:hidden; }
 
     /* VIEWS */
-    .view { display:none; flex:1; flex-direction:column; overflow-y:auto; padding-bottom:20px; padding-top:80px; }
+    .view { display:none; flex:1; flex-direction:column; overflow-y:auto; padding-bottom:calc(95px + env(safe-area-inset-bottom, 0px)); }
     .view::-webkit-scrollbar { display:none; }
     .view.active { display:flex; }
 
@@ -103,7 +103,7 @@ SHA:859296abe0878f8bd9d51a29ca2007243f29c6c7
     .arc-item:active { border-color:var(--gold); }
 
     /* NAV */
-    #nav { position:absolute; top:0; left:0; right:0; height:75px; background:#000; border-bottom:1px solid var(--line); display:grid; grid-template-columns:repeat(5,1fr); z-index:1000; }
+    #nav { position:absolute; bottom:0; left:0; right:0; height:calc(75px + env(safe-area-inset-bottom, 0px)); background:#000; border-top:1px solid var(--line); display:grid; grid-template-columns:repeat(5,1fr); z-index:1000; padding-bottom:env(safe-area-inset-bottom, 0px); }
     .ni { border:none; background:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:#444; cursor:pointer; }
     .ni.on { color:var(--gold); }
     .ni-icon { font-size:20px; }
@@ -1179,14 +1179,7 @@ SHA:859296abe0878f8bd9d51a29ca2007243f29c6c7
 </head>
 <body>
 <div id="app">
-<!-- ══ NAV ══ -->
-  <nav id="nav">
-    <button class="ni on" id="n0" onclick="go(0)"><div class="ni-icon">🏠</div><div class="ni-label">Accueil</div></button>
-    <button class="ni" id="n1" onclick="go(1)"><div class="ni-icon">🎬</div><div class="ni-label">Vidéo IA</div></button>
-    <button class="ni" id="n2" onclick="go(2)"><div class="ni-icon">💬</div><div class="ni-label">WhatsApp</div></button>
-    <button class="ni" id="n3" onclick="go(3)"><div class="ni-icon">✈️</div><div class="ni-label">Telegram</div></button>
-    <button class="ni" id="n4" onclick="go(4)"><div class="ni-icon">📜</div><div class="ni-label">Archives</div></button>
-  </nav>
+
 
 
   <!-- ══ ACCUEIL ══ -->
@@ -1503,6 +1496,17 @@ SHA:859296abe0878f8bd9d51a29ca2007243f29c6c7
     </div>
   </div>
 
+
+
+  
+  <!-- ══ NAV ══ -->
+  <nav id="nav">
+    <button class="ni on" id="n0" onclick="go(0)"><div class="ni-icon">🏠</div><div class="ni-label">Accueil</div></button>
+    <button class="ni" id="n1" onclick="go(1)"><div class="ni-icon">🎬</div><div class="ni-label">Vidéo IA</div></button>
+    <button class="ni" id="n2" onclick="go(2)"><div class="ni-icon">💬</div><div class="ni-label">WhatsApp</div></button>
+    <button class="ni" id="n3" onclick="go(3)"><div class="ni-icon">✈️</div><div class="ni-label">Telegram</div></button>
+    <button class="ni" id="n4" onclick="go(4)"><div class="ni-icon">📜</div><div class="ni-label">Archives</div></button>
+  </nav>
 
 
   <!-- ══ MODAL PROFIL ══ -->
