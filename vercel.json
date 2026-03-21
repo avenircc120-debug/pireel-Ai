@@ -5,16 +5,12 @@
   "functions": {
     "api/studio-generate.js": { "maxDuration": 300 },
     "api/generate.js":        { "maxDuration": 60  },
-    "api/watch-ad.js":        { "maxDuration": 10  },
-    "api/sim-buy.js":         { "maxDuration": 30  },
-    "api/sms-status.js":      { "maxDuration": 10  },
     "api/me.js":              { "maxDuration": 10  }
   },
   "rewrites": [
-    { "source": "/studio",    "destination": "/studio_video.html" },
-    { "source": "/app",       "destination": "/pireel_connected.html" },
-    { "source": "/api/(.*)",  "destination": "/api/$1" },
-    { "source": "/(.*)",      "destination": "/pireel_connected.html" }
+    { "source": "/studio",   "destination": "/studio_video.html" },
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)",     "destination": "/index.html" }
   ],
   "headers": [
     {
