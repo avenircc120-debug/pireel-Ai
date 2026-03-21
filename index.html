@@ -433,7 +433,7 @@
           + '<video id="' + pid + '_v1" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .5s;" playsinline muted></video>'
           + '<video id="' + pid + '_v2" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .5s;opacity:0;" playsinline muted></video>'
           + '<div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent,rgba(0,0,0,.85));display:flex;align-items:center;justify-content:space-between;">'
-          + '<button onclick="cfToggle('' + pid + '')" id="' + pid + '_btn" style="background:rgba(255,207,0,.9);color:#000;border:none;border-radius:50%;width:36px;height:36px;font-size:15px;cursor:pointer;">▶</button>'
+          + '<button onclick="cfToggle(\'' + pid + '\')" id="' + pid + '_btn" style="background:rgba(255,207,0,.9);color:#000;border:none;border-radius:50%;width:36px;height:36px;font-size:15px;cursor:pointer;">▶</button>'
           + '<span id="' + pid + '_time" style="font-size:10px;color:#ccc;font-weight:600;">0:00 / 0:30</span>'
           + '<a href="' + videoUrls[0] + '" download style="background:rgba(255,207,0,.15);color:#ffcf00;border:1px solid rgba(255,207,0,.3);border-radius:20px;padding:5px 10px;font-size:10px;font-weight:700;text-decoration:none;">⬇ Télécharger</a>'
           + '</div></div>';
@@ -448,7 +448,7 @@
         + '<div style="background:#0d1a0f;border-radius:9px;padding:9px 11px;margin-top:6px;display:flex;align-items:center;gap:9px;">'
         + '<span style="font-size:16px;">🎞️</span>'
         + '<span style="flex:1;font-size:11px;color:#00d68f;font-weight:600;">Vidéo 30s · Cross-fade 0.5s · 4K</span>'
-        + (!hasVideo ? '<button onclick="toast_('Mode test actif')" style="background:#1a1a1a;border:1px solid #333;color:#666;border-radius:8px;padding:6px 10px;font-size:10px;cursor:pointer;">▶ Test</button>' : '')
+        + (!hasVideo ? '<button onclick="toast_(\'Mode test actif\')" style="background:#1a1a1a;border:1px solid #333;color:#666;border-radius:8px;padding:6px 10px;font-size:10px;cursor:pointer;">▶ Test</button>' : '')
         + '</div>'
         + (isTest ? '<div style="margin-top:8px;padding:7px;background:#1a0a0a;border-radius:8px;font-size:10px;color:#555;text-align:center;">Mode test — connectez une vraie clé API pour la génération réelle</div>' : '')
         + '</div>';
@@ -1583,7 +1583,7 @@
   </div>
 
   <!-- ══ MODAL ABONNEMENT ══ -->
-  <div class="overlay" id="subModal" onclick="if(event.target.id==='subModal')closeSubs()">
+  <div class="overlay" id="subModal2" onclick="if(event.target.id==='subModal')closeSubs()">
     <div class="sheet" style="max-height:88vh;overflow-y:auto;">
       <div class="sheet-bar"></div>
       <div style="font-size:17px;font-weight:800;margin-bottom:4px;">⭐ Abonnements Premium</div>
