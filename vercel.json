@@ -6,7 +6,8 @@
     "api/studio-generate.js": { "maxDuration": 300 },
     "api/generate.js":        { "maxDuration": 60  },
     "api/me.js":              { "maxDuration": 10  },
-    "api/daily-reset.js":     { "maxDuration": 60  }
+    "api/daily-reset.js":     { "maxDuration": 60  },
+    "api/token-manager.js":   { "maxDuration": 30  }
   },
   "crons": [
     { "path": "/api/daily-reset", "schedule": "0 0 * * *" }
